@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+
+ClientSecret.json
+token_store.json
+scrit.bat
