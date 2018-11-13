@@ -21,7 +21,7 @@ fn list_scriv_contents(blueprint: &Vec<Scrivening>, depth: i32, active_levels: &
 				}	
 			} else {
 				if active_levels[i as usize] {
-					out.push_str("|   ");
+					out.push_str("│   ");
 				} else {
 					out.push_str("    ");
 				}	

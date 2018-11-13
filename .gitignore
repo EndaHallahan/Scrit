@@ -1,6 +1,6 @@
 /target
 **/*.rs.bk
-
+/src/client_info.rs
 ClientSecret.json
 token_store.json
 scrit.bat

@@ -7,11 +7,14 @@ extern crate minidom;
 extern crate walkdir;
 
 mod scrivx_reader;
+mod drive_operations;
+mod client_info;
 mod tree;
 mod init;
 mod push;
 mod pull;
 mod help;
+mod update;
 
 use std::env;
 
@@ -24,6 +27,7 @@ fn main() {
     	"pull" => pull::pull(args),
     	"tree" => tree::binder_tree(),
     	"help" => help::help(args),
+    	"update" => update::update(),
     	"version" => {
     		let version: &'static str = env!("CARGO_PKG_VERSION");
     		println!("Scrit version {}", version);

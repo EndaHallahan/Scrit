@@ -1,39 +1,22 @@
-use hyper::net::HttpsConnector;
-use hyper_native_tls::NativeTlsClient;
-use yup_oauth2::{Authenticator, FlowType, ApplicationSecret, DiskTokenStorage,
-                 DefaultAuthenticatorDelegate, read_application_secret};
-use google_drive3::Drive;
+use drive_operations;
 
 pub fn push(args: Vec<String>) {
-
+	let hub = drive_operations::get_hub();
 }
-
-//const CLIENT_SECRET_FILE: &'static str = "ClientSecret.json";
 
 /*
-// reads the provided example client secret, the quick and dirty way.
-fn read_client_secret(file: String) -> ApplicationSecret {
-    read_application_secret(Path::new(&file)).unwrap()
-}
+scrit push <files> <options>
+
+Options:
+-omit (-o) 		Omit specified files from compilation. Argument is a comma-separated 
+				 list of file names or ids.
+-include (-i)	Ignore files' include/exclude value from compile when compiling.
+-split (-s)		Split files into separate documents on break point.
+-break (-b)		Breaks documents in specified point. In normal operation, this adds 
+				 page breaks and titles. Behaviour is different if -s is 
+				 signified. Argument is an integer. Default is no breaks.
+-clean (-c)		Pushes to GDocs without break placeholders. Documents exported 
+				 in this manner cannot be pulled back into Scrivener.
+-directory (-d)	Specefies a filepath in the Google Drive to upload to. Defaults to the root.
 */
-
-	/*
-	//Get access to drive
-    let secret = read_client_secret(CLIENT_SECRET_FILE.to_string());
-    let client = hyper::Client::with_connector(
-        HttpsConnector::new(NativeTlsClient::new().unwrap()));
-    let authenticator = Authenticator::new(&secret,
-                                           DefaultAuthenticatorDelegate,
-                                           client,
-                                           DiskTokenStorage::new(&"token_store.json".to_string())
-                                               .unwrap(),
-                                           Some(FlowType::InstalledInteractive));
-    let client = hyper::Client::with_connector(
-        HttpsConnector::new(NativeTlsClient::new().unwrap()));
-
-    let hub = Drive::new(client, authenticator);
-
-    */
-
-   	//scrivx_reader::prep_files("Woop".to_string());
 
