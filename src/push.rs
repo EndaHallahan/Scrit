@@ -1,7 +1,79 @@
+use scrivx_reader;
 use drive_operations;
+use std::collections::HashMap;
 
-pub fn push(args: Vec<String>) {
-	let hub = drive_operations::get_hub();
+#[derive(Debug)]
+enum PushArgument {
+	Omit(Vec<String>),
+	Include(Vec<String>),
+	Split,
+	Break(i32),
+	Clean,
+	Directory(String),
+	Item(String)
+}
+
+enum PushState {
+	Initial,
+	Omit,
+	Include,
+	Break,
+	Directory,
+	Null
+}
+
+pub fn push(args: &[String]) {
+	let arguments: Vec<PushArgument> = process_args(args);
+	println!("{:?}", arguments);
+	
+	//let blueprint = scrivx_reader::process_scrivx();
+	//let hub = drive_operations::get_hub();
+}
+
+fn process_args(args: &[String]) -> Vec<PushArgument> {
+	let mut state: PushState = PushState::Initial;
+	let mut options = Vec::new();
+	for arg in args {
+		match arg.as_str() {
+			"-break" | "-b" => {state = PushState::Break;},
+			"-omit" | "-o" => {state = PushState::Omit;},
+			"-include" | "-i" => {state = PushState::Include;},
+			"-directory" | "-d" => {state = PushState::Directory;},
+			"-split" | "-s" => {
+				options.push(PushArgument::Split);
+				state = PushState::Null;
+			},
+			"-clean" | "-c" => {
+				options.push(PushArgument::Clean);
+				state = PushState::Null;
+			},	
+			_ => {
+				match state {
+					PushState::Initial => {
+						options.push(PushArgument::Item(arg.to_string()));
+					},
+					PushState::Omit => {
+						let arg_list: Vec<String> = arg.trim().split(',').map(|s| s.trim().to_string()).collect();
+						options.push(PushArgument::Omit(arg_list));
+					},
+					PushState::Include => {
+						let arg_list: Vec<String> = arg.trim().split(',').map(|s| s.trim().to_string()).collect();
+						options.push(PushArgument::Include(arg_list));
+					}
+					PushState::Break => {
+						options.push(PushArgument::Break(arg.parse().unwrap()));
+					},
+					PushState::Directory => {
+						options.push(PushArgument::Directory(arg.to_string()));
+					},
+					_ => {println!("Invalid argument: {}", arg);}
+				}
+				state = PushState::Null;
+			}
+		}
+	}
+
+	options
 }
 
 /*

@@ -1,16 +1,8 @@
-use std::path::Path;
 use std::fs;
-use std::io;
 use std::io::Read;
-use std::env;
 use std::error::Error;
 use std::fmt;
-
-use quick_xml::Reader;
-use quick_xml::events::Event;
 use minidom::Element;
-use minidom::Node;
-
 use walkdir::WalkDir;
 
 #[derive(Debug)]

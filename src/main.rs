@@ -23,7 +23,7 @@ fn main() {
     if !(args.len() > 1) {return;}
     match args[1].as_str() {
     	"init" => init::init(),
-    	"push" => push::push(args),
+    	"push" => push::push(&args[2..]),
     	"pull" => pull::pull(args),
     	"tree" => tree::binder_tree(),
     	"help" => help::help(args),
