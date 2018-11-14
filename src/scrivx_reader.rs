@@ -103,10 +103,31 @@ pub fn process_scrivx() -> Vec<Scrivening> {
     		Some(t) => t.text().as_str() == "Yes"
     	};
     	let children: Option<Vec<Scrivening>> = make_child_scrivenings(&child);
-    	let new_scriv = Scrivening {title, id, include, children};
+    	let new_scriv: Scrivening = Scrivening {title, id, include, children};
     	outvec.push(new_scriv);
     } 
     return outvec;
+}
+
+pub fn get_scrivening<'a> (name: &String, list: &'a[Scrivening]) -> Option<&'a Scrivening> {
+	for scriv in list {
+		if name.starts_with("#") && scriv.get_id() == name.get(1..).unwrap() {
+			return Some(scriv);
+		} else if scriv.get_title() == name {
+			return Some(scriv);
+		} else {
+			match scriv.get_children() {
+				None => continue,
+				Some(children) => {
+					match get_scrivening(name, children) {
+						None => continue,
+						Some(s) => return Some(s)
+					}
+				}
+			}
+		}
+	}
+	None
 }
 
 fn make_child_scrivenings(ele: &Element) -> Option<Vec<Scrivening>> {
@@ -129,3 +150,4 @@ fn make_child_scrivenings(ele: &Element) -> Option<Vec<Scrivening>> {
 		}
 	}
 }
+

@@ -1,4 +1,5 @@
 use scrivx_reader;
+use scrivx_reader::Scrivening;
 use drive_operations;
 use std::collections::HashMap;
 
@@ -24,9 +25,15 @@ enum PushState {
 
 pub fn push(args: &[String]) {
 	let arguments: Vec<PushArgument> = process_args(args);
-	println!("{:?}", arguments);
-	
-	//let blueprint = scrivx_reader::process_scrivx();
+	let blueprint: Vec<Scrivening> = scrivx_reader::process_scrivx();
+	for arg in arguments {
+		match arg {
+			PushArgument::Item(name) => {
+				println!("{:?}",scrivx_reader::get_scrivening(&name, &blueprint));
+			},
+			_ => {}
+		}
+	}
 	//let hub = drive_operations::get_hub();
 }
 
