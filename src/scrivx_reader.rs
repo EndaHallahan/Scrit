@@ -2,6 +2,7 @@ use std::fs;
 use std::io::Read;
 use std::error::Error;
 use std::fmt;
+use std::path::Path;
 use minidom::Element;
 use walkdir::WalkDir;
 
@@ -23,6 +24,8 @@ pub struct Scrivening {
 	title: String,
 	id: String,
 	include: bool,
+	depth: i32,
+	filepath: Option<String>,
 	children: Option<Vec<Scrivening>>
 }
 impl Scrivening {
@@ -34,6 +37,12 @@ impl Scrivening {
 	}
 	pub fn get_include(&self) -> &bool {
 		&self.include
+	}
+	pub fn get_depth(&self) -> &i32 {
+		&self.depth
+	}
+	pub fn get_filepath(&self) -> &Option<String> {
+		&self.filepath
 	}
 	pub fn get_children(&self) -> &Option<Vec<Scrivening>> {
 		&self.children
@@ -102,8 +111,9 @@ pub fn process_scrivx() -> Vec<Scrivening> {
     		None => false,
     		Some(t) => t.text().as_str() == "Yes"
     	};
-    	let children: Option<Vec<Scrivening>> = make_child_scrivenings(&child);
-    	let new_scriv: Scrivening = Scrivening {title, id, include, children};
+    	let children: Option<Vec<Scrivening>> = make_child_scrivenings(&child, 1);
+    	let filepath = get_doc(&id);
+    	let new_scriv: Scrivening = Scrivening {title, id, include, filepath, children, depth: 0};
     	outvec.push(new_scriv);
     } 
     return outvec;
@@ -130,7 +140,17 @@ pub fn get_scrivening<'a> (name: &String, list: &'a[Scrivening]) -> Option<&'a S
 	None
 }
 
-fn make_child_scrivenings(ele: &Element) -> Option<Vec<Scrivening>> {
+pub fn get_doc(id: &String) -> Option<String> {
+	let file_name_full = format!("{}.rtf", id);
+	for entry in WalkDir::new("./Files/Docs").into_iter().filter_map(|e| e.ok()) {
+		if entry.file_name().to_str().unwrap() == file_name_full {
+			return Some(entry.path().to_path_buf().into_os_string().into_string().unwrap());
+		}
+	}
+	None
+}
+
+fn make_child_scrivenings(ele: &Element, depth: i32) -> Option<Vec<Scrivening>> {
 	match ele.get_named_child("Children") {
 		None => None,
 		Some(e) => {
@@ -142,8 +162,9 @@ fn make_child_scrivenings(ele: &Element) -> Option<Vec<Scrivening>> {
 		    		None => false,
 		    		Some(t) => t.text().as_str() == "Yes"
 		    	};
-				let children: Option<Vec<Scrivening>> = make_child_scrivenings(&child);
-				let new_scriv = Scrivening {title, id, include, children};
+				let children: Option<Vec<Scrivening>> = make_child_scrivenings(&child, depth + 1);
+				let filepath = get_doc(&id);
+				let new_scriv = Scrivening {title, id, include, filepath, children, depth};
 				outvec.push(new_scriv);
 			}
 			return Some(outvec);

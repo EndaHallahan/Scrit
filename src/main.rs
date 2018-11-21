@@ -5,9 +5,13 @@ extern crate google_drive3;
 extern crate quick_xml;
 extern crate minidom;
 extern crate walkdir;
+extern crate rctree;
 
 mod scrivx_reader;
 mod drive_operations;
+mod rtf_operations;
+mod html_operations;
+mod compiler;
 mod client_info;
 mod tree;
 mod init;

@@ -6,6 +6,8 @@ use yup_oauth2;
 use yup_oauth2::{Authenticator, FlowType, ApplicationSecret, DiskTokenStorage,
                  DefaultAuthenticatorDelegate, parse_application_secret, TokenStorage};
 use google_drive3::Drive;
+use google_drive3::Result;
+use google_drive3::File;
 
 use client_info::CLIENT_SECRET;
 
@@ -28,4 +30,8 @@ pub fn get_hub() -> Drive<hyper::Client, Authenticator<DefaultAuthenticatorDeleg
 	);
 
 	Drive::new(client, authenticator)
+}
+
+pub fn make_document() {
+
 }
