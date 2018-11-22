@@ -6,6 +6,8 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 
+use rtf_operations;
+
 enum PushState {
 	Initial,
 	Omit,
@@ -43,6 +45,7 @@ impl Document {
 		    if !clean {
 		    	&self.body.push_str(&format!("\n<[{}]>\n", filepath));
 		    }
+		    rtf_operations::test_rtf_reader(&contents);
 		    &self.body.push_str(&contents);
 		}
 	}
