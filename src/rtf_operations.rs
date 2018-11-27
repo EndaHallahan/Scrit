@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use rctree::Node;
 use std::str::Chars;
-use compiler::{Attribute, DOMElement};
+use std::rc::Rc;
+use compiler::{Attribute, ASTElement, GroupType};
+
+
 
 #[derive(Debug, PartialEq)]
 enum ReadMode {
@@ -24,21 +27,20 @@ enum Instruction {
 	Break
 }
 
-struct RTFReader<'b> {
+struct RTFReader {
 	mode: ReadMode,
-	rtf: &'b String,
 	current_instruction: Instruction,
 	instructions: Vec<Instruction>
 }
-impl<'b> RTFReader<'b> {
-	fn new(rtf: &String) -> RTFReader {
+impl<'b> RTFReader {
+	fn new() -> RTFReader {
 		let mode = ReadMode::ParseText;
 		let current_instruction = Instruction::Null;
 		let instructions = Vec::new();
-		RTFReader{rtf, mode, current_instruction, instructions}
+		RTFReader{mode, current_instruction, instructions}
 	}
-	fn read(&mut self) {
-		let rtf_chars = self.rtf.chars();
+	fn read(&mut self, rtf: &String) -> &Vec<Instruction> {
+		let rtf_chars = rtf.chars();
 		for character in rtf_chars {
 			match &self.mode {
 				ReadMode::ParseText => {self.parse_text(character);},
@@ -47,6 +49,7 @@ impl<'b> RTFReader<'b> {
 				ReadMode::ParseHex => {self.parse_hex(character);}
 			}
 		}
+		&self.instructions
 	}
 	fn parse_text(&mut self, character: char) {
 		match character {
@@ -157,11 +160,124 @@ impl<'b> RTFReader<'b> {
 	}
 }
 
-struct RTFBuilder {
-
-}
-impl RTFBuilder {
+pub fn test(rtf: &String) {
+	let mut anchor: Rc<Node<ASTElement>> = Rc::new(Node::new(ASTElement::new(GroupType::Null)));
+	let mut reader = RTFReader::new();
+	let mut builder = RTFBuilder::new();
 	
+	builder.build(reader.read(rtf));
+}
+
+struct RTFBuilder<'c> {
+	current_instruction: Instruction,
+	current_node: Node<ASTElement<'c>>,
+	def_char_state: HashMap<&'c str, Attribute>,
+	def_par_state: HashMap<&'c str, Attribute>,
+	last_paragraph: Node<ASTElement<'c>>,
+	anchor: Node<ASTElement<'c>>,
+	skip: i32,
+}
+impl<'c> RTFBuilder<'c> {
+	fn new() -> RTFBuilder<'c> {	
+		let current_instruction = Instruction::Null;
+		let anchor = Node::new(ASTElement::new(GroupType::Anchor));
+		let current_node = Node::new(ASTElement::new(GroupType::Document));
+		let def_char_state = HashMap::new();
+		let def_par_state = HashMap::new();
+		let last_paragraph= Node::new(ASTElement::new(GroupType::Null));
+		let skip = 0;
+		RTFBuilder{current_instruction, current_node, def_char_state, def_par_state, last_paragraph, anchor, skip}
+	}
+	fn build(&mut self, instructions: &Vec<Instruction>) /*-> Node<ASTElement<'c>>*/ {
+		self.current_node = Node::new(ASTElement::new(GroupType::Document));
+		self.anchor.append(Node::new(ASTElement::new(GroupType::Document)));
+		self.current_node = self.anchor.first_child().unwrap();
+		for instruction in instructions {
+			self.execute(instruction);
+		}
+		for kid in self.current_node.root().descendants() {
+			println!("{:?}", kid);
+		}
+	}
+
+	fn execute(&mut self, instruction: &Instruction) {
+		if self.skip >0 {
+			self.skip -= 1;
+			return;
+		}
+		match instruction {
+			Instruction::Control(param) => {self.parse_control(&param);},
+			Instruction::Text(param) => {
+				if self.current_node.borrow_mut().ele_type() == &GroupType::Null {
+					self.current_node.borrow_mut().set_ele_type(GroupType::Text);
+					self.current_node.borrow_mut().add_text(&param);
+				} else {
+					self.new_group(GroupType::Fragment);
+					self.current_node.borrow_mut().add_text(&param);
+					self.end_group();
+				}
+			}
+			Instruction::GroupStart => {self.new_group(GroupType::Null);}
+			Instruction::GroupEnd => {self.end_group();}
+			Instruction::Ignorable => {self.current_node.borrow_mut().add_att("Ignorable", Attribute::AttBoolean(true))}
+			Instruction::Hex(param) => {self.parse_hex(&param);}
+			Instruction::Break => {
+				if self.current_node.borrow_mut().ele_type() == &GroupType::Fragment {
+					self.end_group();
+				}
+			}
+			Instruction::ListBreak => {}
+			_ => {}
+		}
+	}
+
+	fn parse_control(&mut self, control: &str) {
+		let mut att_value = Attribute::Null;
+		let mut control_name = control;
+		for (i, c) in control.chars().enumerate() {
+			if c.is_digit(10) {
+				let (a, b) = control.split_at(i);
+				control_name = a;
+				att_value = Attribute::AttInteger(b.parse().unwrap());
+				break;
+			}
+		}
+		
+		//Move elsewhere—compile time lookup table via rust-phf?
+		let mut control_map: HashMap<&str, Box<FnMut(Attribute)>> = HashMap::new();
+		control_map.insert("par", Box::new(|_|{
+			while self.current_node.borrow().ele_type() != &GroupType::Document {
+				self.end_group();
+			}
+			self.new_group(GroupType::Paragraph);
+		}));
+		control_map.insert("b", Box::new(|val|{
+			
+		}));
+		
+
+		match control_map.get_mut(control_name) {
+			Some(funct) => {funct(att_value)},
+			None => {}
+		}
+
+	}
+
+	fn parse_hex(&mut self, hex: &String) {
+
+	}
+
+	fn new_group(&mut self, ele_type: GroupType) {
+		self.current_node.append(Node::new(ASTElement::new(ele_type)));
+		self.current_node = self.current_node.last_child().unwrap();
+	}
+
+	fn end_group(&mut self) {
+		match self.current_node.parent() {
+			None => {},
+			Some(parent) => {self.current_node = parent;}
+		};
+	}	
 }
 
 struct RTFWriter {
@@ -171,49 +287,11 @@ impl RTFWriter {
 
 }
 
-pub fn process_rtf(rtf: &String) -> Node<DOMElement> {
-	let mut document_root: Node<DOMElement> = Node::new(DOMElement::new("document"));
+pub fn process_rtf(rtf: &String) -> Node<ASTElement> {
+	let mut document_root: Node<ASTElement> = Node::new(ASTElement::new(GroupType::Document));
 	document_root
 }
 
-pub fn write_rtf(dom: Node<DOMElement>) /*-> &String*/ {
+pub fn write_rtf(dom: Node<ASTElement>) /*-> &String*/ {
 	
 }
-
-
-
-
-
-
-
-
-/*
-pub fn rtf_to_html(rtf: &String) -> &String {
-	build_html(read_rtf(rtf))
-}
-
-pub fn html_to_rtf(html: &String) -> &String {
-	build_rtf(read_html(html))
-}
-
-
-
-fn read_rtf(rtf: &String) -> &String {
-
-}
-
-fn build_rtf(dom: &String) -> &String {
-
-}
-
-
-
-fn read_html(html: &String) -> &String {
-
-}
-
-fn build_html(dom: &String) -> &String {
-
-}
-*/
-

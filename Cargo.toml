@@ -5,9 +5,6 @@ authors = ["rb_ <41527196+EndaHallahan@users.noreply.github.com>"]
 
 [dependencies]
 google-drive3 = "*"
-# This project intentionally uses an old version of Hyper. See
-# https://github.com/Byron/google-apis-rs/issues/173 for more
-# information.
 hyper = "^0.10"
 hyper-native-tls = "0.2"
 serde = "^1.0"
@@ -17,3 +14,5 @@ quick-xml = "^0.13.1"
 minidom = "*"
 walkdir = "2"
 rctree = "0.2.1"
+futures = "0.1"
+tokio = "0.1"
