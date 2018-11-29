@@ -4,8 +4,6 @@ use std::str::Chars;
 use std::rc::Rc;
 use compiler::{Attribute, ASTElement, GroupType};
 
-
-
 #[derive(Debug, PartialEq)]
 enum ReadMode {
 	ParseText,
@@ -161,7 +159,6 @@ impl<'b> RTFReader {
 }
 
 pub fn test(rtf: &String) {
-	let mut anchor: Rc<Node<ASTElement>> = Rc::new(Node::new(ASTElement::new(GroupType::Null)));
 	let mut reader = RTFReader::new();
 	let mut builder = RTFBuilder::new();
 	
@@ -184,20 +181,18 @@ impl<'c> RTFBuilder<'c> {
 		let current_node = Node::new(ASTElement::new(GroupType::Document));
 		let def_char_state = HashMap::new();
 		let def_par_state = HashMap::new();
-		let last_paragraph= Node::new(ASTElement::new(GroupType::Null));
+		let last_paragraph = Node::new(ASTElement::new(GroupType::Null));
 		let skip = 0;
 		RTFBuilder{current_instruction, current_node, def_char_state, def_par_state, last_paragraph, anchor, skip}
 	}
-	fn build(&mut self, instructions: &Vec<Instruction>) /*-> Node<ASTElement<'c>>*/ {
+	fn build(&mut self, instructions: &Vec<Instruction>) -> Node<ASTElement<'c>> {
 		self.current_node = Node::new(ASTElement::new(GroupType::Document));
 		self.anchor.append(Node::new(ASTElement::new(GroupType::Document)));
 		self.current_node = self.anchor.first_child().unwrap();
 		for instruction in instructions {
 			self.execute(instruction);
 		}
-		for kid in self.current_node.root().descendants() {
-			println!("{:?}", kid);
-		}
+		self.current_node.root()
 	}
 
 	fn execute(&mut self, instruction: &Instruction) {
@@ -238,29 +233,30 @@ impl<'c> RTFBuilder<'c> {
 			if c.is_digit(10) {
 				let (a, b) = control.split_at(i);
 				control_name = a;
-				att_value = Attribute::AttInteger(b.parse().unwrap());
+				att_value = Attribute::AttInteger(match b.parse() {
+					Ok(val) => val,
+					Err(_) => 1
+				});
 				break;
 			}
 		}
-		
-		//Move elsewhere—compile time lookup table via rust-phf?
-		let mut control_map: HashMap<&str, Box<FnMut(Attribute)>> = HashMap::new();
-		control_map.insert("par", Box::new(|_|{
-			while self.current_node.borrow().ele_type() != &GroupType::Document {
-				self.end_group();
-			}
-			self.new_group(GroupType::Paragraph);
-		}));
-		control_map.insert("b", Box::new(|val|{
-			
-		}));
-		
 
-		match control_map.get_mut(control_name) {
-			Some(funct) => {funct(att_value)},
-			None => {}
+		//Need to find a better way of doing this; hashmaps let me down.
+		match control_name {
+			"b" => self.cmd_b(att_value),
+			"i" =>self.cmd_i(att_value),
+			"strike" =>self.cmd_strike(att_value),
+			"scaps" =>self.cmd_scaps(att_value),
+			"ul" =>self.cmd_ul(att_value),
+			"ulnone" =>self.cmd_ulnone(),
+			"sub" =>self.cmd_sub(),
+			"super" =>self.cmd_super(),
+			"nosupersub" =>self.cmd_nosupersub(),
+			"par" => self.cmd_par(),
+			"pgnrestart" => self.cmd_pgnrestart(),
+			"scrivpath" => self.cmd_scrivpath(),
+			_ => {}
 		}
-
 	}
 
 	fn parse_hex(&mut self, hex: &String) {
@@ -278,6 +274,53 @@ impl<'c> RTFBuilder<'c> {
 			Some(parent) => {self.current_node = parent;}
 		};
 	}	
+
+	fn cmd_b(&mut self, val: Attribute) {
+		self.current_node.borrow_mut().add_att("bold", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	}
+	fn cmd_i(&mut self, val: Attribute) {
+		self.current_node.borrow_mut().add_att("italics", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	}
+	fn cmd_strike(&mut self, val: Attribute) {
+		self.current_node.borrow_mut().add_att("strikethrough", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	}
+	fn cmd_scaps(&mut self, val: Attribute) {
+		self.current_node.borrow_mut().add_att("smallcaps", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	}
+	fn cmd_ul(&mut self, val: Attribute) {
+		self.current_node.borrow_mut().add_att("underline", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	}
+	fn cmd_ulnone(&mut self) {
+		self.current_node.borrow_mut().add_att("underline", Attribute::AttBoolean(false));
+	}
+	fn cmd_sub(&mut self) {
+		self.current_node.borrow_mut().add_att("subscript", Attribute::AttBoolean(true));
+	}
+	fn cmd_super(&mut self) {
+		self.current_node.borrow_mut().add_att("superscript", Attribute::AttBoolean(true));
+	}
+	fn cmd_nosupersub(&mut self) {
+		self.current_node.borrow_mut().add_att("superscript", Attribute::AttBoolean(false));
+		self.current_node.borrow_mut().add_att("subscript", Attribute::AttBoolean(false));
+	}
+
+	fn cmd_pgnrestart(&mut self) {
+		while self.current_node.borrow().ele_type() != &GroupType::Document {
+			self.end_group();
+		}
+		self.new_group(GroupType::Body);
+	}
+
+	fn cmd_par(&mut self) {
+		while self.current_node.borrow().ele_type() != &GroupType::Body {
+			self.end_group();
+		}
+		self.new_group(GroupType::Paragraph);
+	}
+
+	fn cmd_scrivpath(&mut self) {
+		self.current_node.borrow_mut().add_att("scrivpath", Attribute::AttBoolean(true));
+	}
 }
 
 struct RTFWriter {
@@ -287,9 +330,10 @@ impl RTFWriter {
 
 }
 
-pub fn process_rtf(rtf: &String) -> Node<ASTElement> {
-	let mut document_root: Node<ASTElement> = Node::new(ASTElement::new(GroupType::Document));
-	document_root
+pub fn process_rtf<'c>(rtf: &String) -> Node<ASTElement<'c>> {
+	let mut reader = RTFReader::new();
+	let mut builder = RTFBuilder::new();	
+	builder.build(reader.read(&rtf))
 }
 
 pub fn write_rtf(dom: Node<ASTElement>) /*-> &String*/ {

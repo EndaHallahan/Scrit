@@ -17,7 +17,7 @@ enum PushState {
 }
 
 #[derive(Debug)]
-struct Document {
+pub struct Document {
 	title: String,
 	contents: Vec<String>, 
 	body: String,
@@ -43,9 +43,8 @@ impl Document {
 		    f.read_to_string(&mut contents)
 		        .expect("Something went wrong reading the file!");
 		    if !clean {
-		    	&self.body.push_str(&format!("\n<[{}]>\n", filepath));
+		    	&self.body.push_str(&format!("{{\\scrivpath [[[{}]]]}}", filepath.trim_left_matches("./Files/Docs\\")));
 		    }
-		    rtf_operations::test(&contents);
 		    &self.body.push_str(&contents);
 		}
 	}
@@ -148,11 +147,8 @@ fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, includ
 
 fn export (documents: Vec<Document>, split: bool, clean: bool, directory: Option<String>) {
 	let hub = drive_operations::get_hub();
-	println!("{:?}", documents);
-	for mut doc in documents {
-		doc.body_build(clean);
-	}
-	
+	let compiled_string = compiler::compile(documents, clean);	
+	println!("{}",compiled_string);
 }
 
 /*

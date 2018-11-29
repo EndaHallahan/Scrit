@@ -1,8 +1,9 @@
 use std::collections::HashMap;
+use push::Document;
 use rtf_operations::{process_rtf,write_rtf};
 use html_operations::{process_html, write_html};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Attribute {
 	Null,
 	AttColor(i32, i32, i32),
@@ -19,7 +20,8 @@ pub enum GroupType {
 	Document,
 	Text,
 	Fragment,
-	Paragraph
+	Paragraph,
+	Body
 }
 
 #[derive(Debug, Clone)]
@@ -46,9 +48,15 @@ impl<'a> ASTElement<'a> {
 	pub fn add_text(&mut self, new_text: &String) {
 		self.text_contents = format!("{}{}", self.text_contents, new_text);
 	}
+	pub fn text_contents(&self) -> &String {
+		&self.text_contents
+	}
+	pub fn attributes(&self) -> &HashMap<&'a str, Attribute> {
+		&self.attributes
+	}
 }
 
-fn rtf_to_html(rtf: &String) /*-> &String*/ {
+pub fn rtf_to_html<'t>(rtf: &String) -> String {
 	write_html(process_rtf(rtf))
 }
 
@@ -56,8 +64,14 @@ fn html_to_rtf(html: &String) /*-> &String*/ {
 	write_rtf(process_html(html))
 }
 
-pub fn compile () {
-
+pub fn compile<'t>(documents: Vec<Document>, clean: bool) -> String {
+	let mut compiled_string: String = String::new();
+	for mut doc in documents {
+		doc.body_build(clean);
+		compiled_string = format!("{}<h2 data-scrivtitle='true'>{}</h2>{}", compiled_string, doc.get_title(), rtf_to_html(doc.get_body()));
+	}
+	compiled_string = format!("<html><body>{}</body></html>", compiled_string);
+	compiled_string
 }
 
 pub fn decompile() {
