@@ -35,3 +35,11 @@ pub fn get_hub() -> Drive<hyper::Client, Authenticator<DefaultAuthenticatorDeleg
 pub fn make_document() {
 
 }
+
+pub fn upload(compiled_set: Vec<String>, directory: Option<String>) {
+
+}
+
+pub fn download() {
+
+}

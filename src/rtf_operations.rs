@@ -319,7 +319,7 @@ impl<'c> RTFBuilder<'c> {
 	}
 
 	fn cmd_scrivpath(&mut self) {
-		self.current_node.borrow_mut().add_att(Attribute::ScrivPath);
+		self.new_group(GroupType::ScrivPath);
 	}
 }
 

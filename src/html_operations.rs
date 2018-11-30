@@ -31,21 +31,23 @@ impl HTMLWriter {
 		self.output_string.clone()
 	}
 	fn start_element(&mut self, element: Ref<ASTElement>) {
-		let tag: &str = match element.ele_type() {
-			GroupType::Text => "span",
-			GroupType::Paragraph => "p",
+		let mut tag: &str = "";
+		let mut attributes = String::new();
+		let mut styles = "style='".to_string();
+		match element.ele_type() {
+			GroupType::Text | GroupType::Fragment => {tag = "span";},
+			GroupType::Paragraph => {tag = "p";},
+			GroupType::ScrivPath => {
+				tag = "div";
+				attributes = format!("{} {}", attributes, "data-scrivpath='true'");
+			},
 			//GroupType::Document => "html",
 			//GroupType::Body => "body",
 			_ => return
 		};
 		let atts = element.attributes();
-		let mut attributes = String::new();
-		let mut styles = "style='".to_string();
 		for att in atts {
 			match *att {
-				Attribute::ScrivPath => {
-					attributes = format!("{} {}", attributes, "data-scrivpath='true'");
-				},
 				Attribute::Italics(true) => {
 					styles = format!("{}{}", styles, "font-style:italic;");
 				}
@@ -62,6 +64,7 @@ impl HTMLWriter {
 		let tag: &str = match element.ele_type() {
 			GroupType::Text => "span",
 			GroupType::Paragraph => "p",
+			GroupType::ScrivPath => "div",
 			_ => return
 		};
 		let tag_string = format!("</{}>", tag);

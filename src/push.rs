@@ -43,7 +43,7 @@ impl Document {
 		    f.read_to_string(&mut contents)
 		        .expect("Something went wrong reading the file!");
 		    if !clean {
-		    	&self.body.push_str(&format!("{{\\scrivpath [[[{}]]]}}", filepath.trim_left_matches("./Files/Docs\\")));
+		    	&self.body.push_str(&format!("{{\\scrivpath {{[[[{}]]]}}}}", filepath.trim_left_matches("./Files/Docs\\")));
 		    }
 		    &self.body.push_str(&contents);
 		}
@@ -147,8 +147,11 @@ fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, includ
 
 fn export (documents: Vec<Document>, split: bool, clean: bool, directory: Option<String>) {
 	let hub = drive_operations::get_hub();
-	let compiled_string = compiler::compile(documents, clean);	
-	println!("{}",compiled_string);
+	let compiled_set = compiler::compile(documents, clean, split);	
+	for doc in &compiled_set {
+		println!("{}\n",doc);
+	}
+	drive_operations::upload(compiled_set, directory);
 }
 
 /*
