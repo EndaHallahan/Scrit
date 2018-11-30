@@ -41,16 +41,16 @@ impl HTMLWriter {
 		let atts = element.attributes();
 		let mut attributes = String::new();
 		let mut styles = "style='".to_string();
-		for (att, val) in atts.iter() {
+		for att in atts {
 			match *att {
-				"scrivpath" => {
+				Attribute::ScrivPath => {
 					attributes = format!("{} {}", attributes, "data-scrivpath='true'");
 				},
-				"italics" => {
-					styles = format!("{}{} ", styles, "font-style:italic;");
+				Attribute::Italics(true) => {
+					styles = format!("{}{}", styles, "font-style:italic;");
 				}
-				"bold" => {
-					styles = format!("{}{} ", styles, "font-weight:bold;");
+				Attribute::Bold(true) => {
+					styles = format!("{}{}", styles, "font-weight:bold;");
 				}
 				_ => {}
 			}

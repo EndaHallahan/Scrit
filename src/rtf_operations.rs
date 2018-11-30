@@ -167,11 +167,11 @@ pub fn test(rtf: &String) {
 
 struct RTFBuilder<'c> {
 	current_instruction: Instruction,
-	current_node: Node<ASTElement<'c>>,
+	current_node: Node<ASTElement>,
 	def_char_state: HashMap<&'c str, Attribute>,
 	def_par_state: HashMap<&'c str, Attribute>,
-	last_paragraph: Node<ASTElement<'c>>,
-	anchor: Node<ASTElement<'c>>,
+	last_paragraph: Node<ASTElement>,
+	anchor: Node<ASTElement>,
 	skip: i32,
 }
 impl<'c> RTFBuilder<'c> {
@@ -185,7 +185,7 @@ impl<'c> RTFBuilder<'c> {
 		let skip = 0;
 		RTFBuilder{current_instruction, current_node, def_char_state, def_par_state, last_paragraph, anchor, skip}
 	}
-	fn build(&mut self, instructions: &Vec<Instruction>) -> Node<ASTElement<'c>> {
+	fn build(&mut self, instructions: &Vec<Instruction>) -> Node<ASTElement> {
 		self.current_node = Node::new(ASTElement::new(GroupType::Document));
 		self.anchor.append(Node::new(ASTElement::new(GroupType::Document)));
 		self.current_node = self.anchor.first_child().unwrap();
@@ -214,7 +214,7 @@ impl<'c> RTFBuilder<'c> {
 			}
 			Instruction::GroupStart => {self.new_group(GroupType::Null);}
 			Instruction::GroupEnd => {self.end_group();}
-			Instruction::Ignorable => {self.current_node.borrow_mut().add_att("Ignorable", Attribute::AttBoolean(true))}
+			Instruction::Ignorable => {self.current_node.borrow_mut().add_att(Attribute::Ignorable)}
 			Instruction::Hex(param) => {self.parse_hex(&param);}
 			Instruction::Break => {
 				if self.current_node.borrow_mut().ele_type() == &GroupType::Fragment {
@@ -227,16 +227,16 @@ impl<'c> RTFBuilder<'c> {
 	}
 
 	fn parse_control(&mut self, control: &str) {
-		let mut att_value = Attribute::Null;
+		let mut att_value = 0;
 		let mut control_name = control;
 		for (i, c) in control.chars().enumerate() {
 			if c.is_digit(10) {
 				let (a, b) = control.split_at(i);
 				control_name = a;
-				att_value = Attribute::AttInteger(match b.parse() {
+				att_value = match b.parse() {
 					Ok(val) => val,
 					Err(_) => 1
-				});
+				};
 				break;
 			}
 		}
@@ -275,33 +275,33 @@ impl<'c> RTFBuilder<'c> {
 		};
 	}	
 
-	fn cmd_b(&mut self, val: Attribute) {
-		self.current_node.borrow_mut().add_att("bold", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	fn cmd_b(&mut self, val: i32) {
+		self.current_node.borrow_mut().add_att(Attribute::Bold(val == 1));
 	}
-	fn cmd_i(&mut self, val: Attribute) {
-		self.current_node.borrow_mut().add_att("italics", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	fn cmd_i(&mut self, val: i32) {
+		self.current_node.borrow_mut().add_att(Attribute::Italics(val == 1));
 	}
-	fn cmd_strike(&mut self, val: Attribute) {
-		self.current_node.borrow_mut().add_att("strikethrough", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	fn cmd_strike(&mut self, val: i32) {
+		self.current_node.borrow_mut().add_att(Attribute::Strikethrough(val == 1));
 	}
-	fn cmd_scaps(&mut self, val: Attribute) {
-		self.current_node.borrow_mut().add_att("smallcaps", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	fn cmd_scaps(&mut self, val: i32) {
+		self.current_node.borrow_mut().add_att(Attribute::Smallcaps(val == 1));
 	}
-	fn cmd_ul(&mut self, val: Attribute) {
-		self.current_node.borrow_mut().add_att("underline", Attribute::AttBoolean(val == Attribute::AttInteger(1)));
+	fn cmd_ul(&mut self, val: i32) {
+		self.current_node.borrow_mut().add_att(Attribute::Underline(val == 1));
 	}
 	fn cmd_ulnone(&mut self) {
-		self.current_node.borrow_mut().add_att("underline", Attribute::AttBoolean(false));
+		self.current_node.borrow_mut().add_att(Attribute::Underline(false));
 	}
 	fn cmd_sub(&mut self) {
-		self.current_node.borrow_mut().add_att("subscript", Attribute::AttBoolean(true));
+		self.current_node.borrow_mut().add_att(Attribute::Subscript(true));
 	}
 	fn cmd_super(&mut self) {
-		self.current_node.borrow_mut().add_att("superscript", Attribute::AttBoolean(true));
+		self.current_node.borrow_mut().add_att(Attribute::Superscript(true));
 	}
 	fn cmd_nosupersub(&mut self) {
-		self.current_node.borrow_mut().add_att("superscript", Attribute::AttBoolean(false));
-		self.current_node.borrow_mut().add_att("subscript", Attribute::AttBoolean(false));
+		self.current_node.borrow_mut().add_att(Attribute::Superscript(false));
+		self.current_node.borrow_mut().add_att(Attribute::Subscript(false));
 	}
 
 	fn cmd_pgnrestart(&mut self) {
@@ -319,7 +319,7 @@ impl<'c> RTFBuilder<'c> {
 	}
 
 	fn cmd_scrivpath(&mut self) {
-		self.current_node.borrow_mut().add_att("scrivpath", Attribute::AttBoolean(true));
+		self.current_node.borrow_mut().add_att(Attribute::ScrivPath);
 	}
 }
 
@@ -330,7 +330,7 @@ impl RTFWriter {
 
 }
 
-pub fn process_rtf<'c>(rtf: &String) -> Node<ASTElement<'c>> {
+pub fn process_rtf<'c>(rtf: &String) -> Node<ASTElement> {
 	let mut reader = RTFReader::new();
 	let mut builder = RTFBuilder::new();	
 	builder.build(reader.read(&rtf))
