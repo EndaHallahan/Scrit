@@ -14,6 +14,8 @@ impl HTMLReader {
 
 struct HTMLWriter {
 	output_string: String
+	//Need to store current font table, colour table, etc. 
+	//Replace them when a new one is found.
 }
 impl HTMLWriter {
 	fn new () -> HTMLWriter {
@@ -39,7 +41,7 @@ impl HTMLWriter {
 			GroupType::Paragraph => {tag = "p";},
 			GroupType::ScrivPath => {
 				tag = "div";
-				attributes = format!("{} {}", attributes, "data-scrivpath='true'");
+				attributes = format!("{} data-scrivpath='true'", attributes);
 			},
 			//GroupType::Document => "html",
 			//GroupType::Body => "body",
@@ -49,11 +51,14 @@ impl HTMLWriter {
 		for att in atts {
 			match *att {
 				Attribute::Italics(true) => {
-					styles = format!("{}{}", styles, "font-style:italic;");
-				}
+					styles = format!("{}font-style:italic;", styles);
+				},
 				Attribute::Bold(true) => {
-					styles = format!("{}{}", styles, "font-weight:bold;");
-				}
+					styles = format!("{}font-weight:bold;", styles);
+				},
+				Attribute::FontSize(val) => {
+					styles = format!("{}font-size:{}pt;", styles, (val/2).to_string());
+				},
 				_ => {}
 			}
 		}
@@ -76,7 +81,6 @@ pub fn process_html(html: &String) -> Node<ASTElement> {
 	let mut document_root: Node<ASTElement> = Node::new(ASTElement::new(GroupType::Document));
 	document_root
 }
-
 
 pub fn write_html(dom: Node<ASTElement>) -> String {
 	let mut writer = HTMLWriter::new();

@@ -22,7 +22,6 @@ mod update;
 
 use std::env;
 
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     if !(args.len() > 1) {return;}
@@ -37,6 +36,6 @@ fn main() {
     		let version: &'static str = env!("CARGO_PKG_VERSION");
     		println!("Scrit version {}", version);
     	},
-    	_ => println!("Unknown command '{}'. Type 'help' for a list of valid commands.", args[1].as_str())
+    	_ => println!("Unknown command '{}'. Type 'scrit help' for a list of valid commands.", args[1].as_str())
     }	
 }

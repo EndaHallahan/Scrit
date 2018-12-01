@@ -13,10 +13,11 @@ pub enum Attribute {
 	Smallcaps(bool),
 	Underline(bool),
 	Subscript(bool),
-	Superscript(bool)
+	Superscript(bool),
+	FontSize(i32)
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum GroupType {
 	Null,
 	Anchor,
@@ -27,7 +28,14 @@ pub enum GroupType {
 	Body,
 	ScrivPath,
 	List(char),
-	ListItem
+	ListItem,
+	FontTable,
+	Font(String),
+	ColourTable,
+	Colour,
+	ListTable,
+	ListLabel,
+	ListOverrideTable
 }
 
 #[derive(Debug, Clone)]
@@ -70,25 +78,28 @@ fn html_to_rtf(html: &String) /*-> &String*/ {
 	write_rtf(process_html(html))
 }
 
-pub fn compile<'t>(documents: Vec<Document>, clean: bool, split: bool) -> Vec<String> {
+pub fn compile<'t>(mut documents: Vec<Document>, clean: bool, split: bool) -> HashMap<String, String> {
+	let mut compiled_match: HashMap<String, String> = HashMap::new();
 	let mut compiled_set: Vec<String> = Vec::new();
 	let mut compiled_string: String = String::new();
-	for mut doc in documents {
+	for doc in &mut documents {
 		doc.body_build(clean);
 		let compiled_string = format!("<h2 data-scrivtitle='true'>{}</h2>{}", doc.get_title(), rtf_to_html(doc.get_body()));
 		compiled_set.push(compiled_string);
 	}
 	if !split {
-		let mut full_string = String::new();
-		for i in 0..compiled_set.len() {
-			full_string = format!("{}{}", full_string, compiled_set.remove(0));
+		for i in 0..compiled_set.len() - 1{
+			compiled_set[0] = format!("{}{}", compiled_set[0].clone(), compiled_set.remove(1));
 		}
-		compiled_set.push(full_string);
+	}
+	for i in 0..compiled_set.len(){
+		compiled_set[i] = format!("<!DOCTYPE html><body>{}</body></html>", &compiled_set[i]);
+		
 	}
 	for i in 0..compiled_set.len() {
-		compiled_set[i] = format!("<!DOCTYPE html><body>{}</body></html>", &compiled_set[i]);
+		compiled_match.insert(documents[i].get_title().to_string(), compiled_set.remove(0));
 	}
-	compiled_set
+	compiled_match
 }
 
 pub fn decompile() {

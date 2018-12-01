@@ -108,15 +108,12 @@ pub fn push(args: &[String]) {
 		}
 	}
 	if exports.is_empty() {println!("No documents selected for push!"); return;}
-	//println!("{:?}", exports[0]);
 	let mut doc_list: Vec<Document> = Vec::new();
 	for item in exports {
 		let mut new_doc = Document::new(item.get_title().to_string(), collect_filepaths(item, &omit, &include));
 		doc_list.push(new_doc);
 	}
-	export(doc_list, split, clean, directory);
-	
-	//export(exports, omit, include, split, breakline, clean, directory);	
+	export(doc_list, split, clean, directory);	
 }
 
 fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, include: &bool) -> Vec<String> {
@@ -146,10 +143,9 @@ fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, includ
 }
 
 fn export (documents: Vec<Document>, split: bool, clean: bool, directory: Option<String>) {
-	let hub = drive_operations::get_hub();
 	let compiled_set = compiler::compile(documents, clean, split);	
-	for doc in &compiled_set {
-		println!("{}\n",doc);
+	for (a,b) in compiled_set.iter() {
+		println!("{}:\n{}\n\n", a, b);
 	}
 	drive_operations::upload(compiled_set, directory);
 }

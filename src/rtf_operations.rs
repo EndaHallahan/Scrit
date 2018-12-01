@@ -30,7 +30,7 @@ struct RTFReader {
 	current_instruction: Instruction,
 	instructions: Vec<Instruction>
 }
-impl<'b> RTFReader {
+impl RTFReader {
 	fn new() -> RTFReader {
 		let mode = ReadMode::ParseText;
 		let current_instruction = Instruction::Null;
@@ -158,29 +158,22 @@ impl<'b> RTFReader {
 	}
 }
 
-pub fn test(rtf: &String) {
-	let mut reader = RTFReader::new();
-	let mut builder = RTFBuilder::new();
-	
-	builder.build(reader.read(rtf));
-}
-
-struct RTFBuilder<'c> {
+struct RTFBuilder {
 	current_instruction: Instruction,
 	current_node: Node<ASTElement>,
-	def_char_state: HashMap<&'c str, Attribute>,
-	def_par_state: HashMap<&'c str, Attribute>,
+	def_char_state: Vec<Attribute>,
+	def_par_state: Vec<Attribute>,
 	last_paragraph: Node<ASTElement>,
 	anchor: Node<ASTElement>,
 	skip: i32,
 }
-impl<'c> RTFBuilder<'c> {
-	fn new() -> RTFBuilder<'c> {	
+impl RTFBuilder {
+	fn new() -> RTFBuilder {	
 		let current_instruction = Instruction::Null;
 		let anchor = Node::new(ASTElement::new(GroupType::Anchor));
 		let current_node = Node::new(ASTElement::new(GroupType::Document));
-		let def_char_state = HashMap::new();
-		let def_par_state = HashMap::new();
+		let def_char_state = Vec::new();
+		let def_par_state = Vec::new();
 		let last_paragraph = Node::new(ASTElement::new(GroupType::Null));
 		let skip = 0;
 		RTFBuilder{current_instruction, current_node, def_char_state, def_par_state, last_paragraph, anchor, skip}
@@ -252,6 +245,7 @@ impl<'c> RTFBuilder<'c> {
 			"sub" =>self.cmd_sub(),
 			"super" =>self.cmd_super(),
 			"nosupersub" =>self.cmd_nosupersub(),
+			"fs" =>self.cmd_fs(att_value),
 			"par" => self.cmd_par(),
 			"pgnrestart" => self.cmd_pgnrestart(),
 			"scrivpath" => self.cmd_scrivpath(),
@@ -303,6 +297,9 @@ impl<'c> RTFBuilder<'c> {
 		self.current_node.borrow_mut().add_att(Attribute::Superscript(false));
 		self.current_node.borrow_mut().add_att(Attribute::Subscript(false));
 	}
+	fn cmd_fs(&mut self, val:i32) {
+		self.current_node.borrow_mut().add_att(Attribute::FontSize(val));
+	}
 
 	fn cmd_pgnrestart(&mut self) {
 		while self.current_node.borrow().ele_type() != &GroupType::Document {
@@ -330,7 +327,7 @@ impl RTFWriter {
 
 }
 
-pub fn process_rtf<'c>(rtf: &String) -> Node<ASTElement> {
+pub fn process_rtf(rtf: &String) -> Node<ASTElement> {
 	let mut reader = RTFReader::new();
 	let mut builder = RTFBuilder::new();	
 	builder.build(reader.read(&rtf))
