@@ -4,6 +4,22 @@ use std::str::Chars;
 use std::rc::Rc;
 use compiler::{Attribute, ASTElement, GroupType};
 
+const WIN_1252: [char; 255] = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+	' ','!','\"','#','$','%','&','\'','(',')','*','+',',','-','.','/',
+	'0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','@','A',
+	'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R',
+	'S','T','U','V','W','X','Y','Z','[','\\',']','^','_','`','a','b','c',
+	'd','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t',
+	'u','v','w','x','y','z','{','|','}','~',' ','€','�','‚','ƒ','„','…',
+	'†','‡','ˆ','‰','Š','‹','Œ','�','Ž','�','�','‘','’','“','”','•','–',
+	'—','˜','™','š','›','œ','�','ž','Ÿ',' ','¡','¢','£','¤','¥','¦','§',
+	'¨','©','ª','«','-','®','¯','°','±','²','³','´','µ','¶','·','¸','¹',
+	'º','»','¼','½','¾','¿','À','Á','Â','Ã','Ä','Å','Æ','Ç','È','É','Ê',
+	'Ë','Ì','Í','Î','Ï','Ð','Ñ','Ò','Ó','Ô','Õ','Ö','×','Ø','Ù','Ú','Û',
+	'Ü','Ý','Þ','ß','à','á','â','ã','ä','å','æ','ç','è','é','ê','ë','ì',
+	'í','î','ï','ð','ñ','ò','ó','ô','õ','ö','÷','ø','ù','ú','û','ü','ý',
+	'þ','ÿ'];
+
 #[derive(Debug, PartialEq)]
 enum ReadMode {
 	ParseText,
@@ -183,8 +199,14 @@ impl RTFBuilder {
 		self.anchor.append(Node::new(ASTElement::new(GroupType::Document)));
 		self.current_node = self.anchor.first_child().unwrap();
 		for instruction in instructions {
+			//println!("{:?}", instruction);
 			self.execute(instruction);
 		}
+
+		/*for node in self.current_node.root().descendants() {
+			println!("{:?}",node.borrow());
+		}*/
+		
 		self.current_node.root()
 	}
 
@@ -198,6 +220,8 @@ impl RTFBuilder {
 			Instruction::Text(param) => {
 				if self.current_node.borrow_mut().ele_type() == &GroupType::Null {
 					self.current_node.borrow_mut().set_ele_type(GroupType::Text);
+					self.current_node.borrow_mut().add_text(&param);
+				} else if self.current_node.borrow_mut().ele_type() == &GroupType::Text {
 					self.current_node.borrow_mut().add_text(&param);
 				} else {
 					self.new_group(GroupType::Fragment);
@@ -249,12 +273,24 @@ impl RTFBuilder {
 			"par" => self.cmd_par(),
 			"pgnrestart" => self.cmd_pgnrestart(),
 			"scrivpath" => self.cmd_scrivpath(),
+			"emdash" => self.cmd_emdash(),
+			"endash" => self.cmd_endash(),
+			"tab" => self.cmd_tab(),
+			"line" => self.cmd_line(),
+			"hrule" => self.cmd_hrule(),
 			_ => {}
 		}
 	}
 
 	fn parse_hex(&mut self, hex: &String) {
-
+		let re_hex = (i64::from_str_radix(hex, 16).unwrap()) as usize;
+		if self.current_node.borrow_mut().ele_type() == &GroupType::Text {
+			self.current_node.borrow_mut().add_text(&WIN_1252[re_hex].to_string());
+		} else {
+			self.new_group(GroupType::Fragment);
+			self.current_node.borrow_mut().add_text(&WIN_1252[re_hex].to_string());
+			self.end_group();
+		}
 	}
 
 	fn new_group(&mut self, ele_type: GroupType) {
@@ -268,6 +304,24 @@ impl RTFBuilder {
 			Some(parent) => {self.current_node = parent;}
 		};
 	}	
+
+	fn cmd_emdash(&mut self) {
+		self.current_node.borrow_mut().add_text(&"—".to_string());
+	}
+	fn cmd_endash(&mut self) {
+		self.current_node.borrow_mut().add_text(&"–".to_string());
+	}
+	fn cmd_tab(&mut self) {
+		self.current_node.borrow_mut().add_text(&"\t".to_string());
+	}
+	fn cmd_line(&mut self) {
+		self.current_node.borrow_mut().add_text(&"\n".to_string());
+	}
+	fn cmd_hrule(&mut self) {
+		self.new_group(GroupType::Hr);
+		self.end_group();
+	}
+
 
 	fn cmd_b(&mut self, val: i32) {
 		self.current_node.borrow_mut().add_att(Attribute::Bold(val == 1));

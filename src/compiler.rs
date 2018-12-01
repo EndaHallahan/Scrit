@@ -35,7 +35,8 @@ pub enum GroupType {
 	Colour,
 	ListTable,
 	ListLabel,
-	ListOverrideTable
+	ListOverrideTable,
+	Hr
 }
 
 #[derive(Debug, Clone)]

@@ -39,6 +39,7 @@ impl HTMLWriter {
 		match element.ele_type() {
 			GroupType::Text | GroupType::Fragment => {tag = "span";},
 			GroupType::Paragraph => {tag = "p";},
+			GroupType::Hr => {tag = "hr";},
 			GroupType::ScrivPath => {
 				tag = "div";
 				attributes = format!("{} data-scrivpath='true'", attributes);
@@ -69,6 +70,7 @@ impl HTMLWriter {
 		let tag: &str = match element.ele_type() {
 			GroupType::Text => "span",
 			GroupType::Paragraph => "p",
+			GroupType::Hr => {"hr"},
 			GroupType::ScrivPath => "div",
 			_ => return
 		};

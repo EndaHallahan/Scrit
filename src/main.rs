@@ -28,9 +28,9 @@ fn main() {
     match args[1].as_str() {
     	"init" => init::init(),
     	"push" => push::push(&args[2..]),
-    	"pull" => pull::pull(args),
+    	"pull" => pull::pull(&args[2..]),
     	"tree" => tree::binder_tree(),
-    	"help" => help::help(args),
+    	"help" => help::help(&args[2..]),
     	"update" => update::update(),
     	"version" => {
     		let version: &'static str = env!("CARGO_PKG_VERSION");
