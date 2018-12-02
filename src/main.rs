@@ -32,9 +32,14 @@ fn main() {
     	"tree" => tree::binder_tree(),
     	"help" => help::help(&args[2..]),
     	"update" => update::update(),
-    	"version" => {
+    	"info" => {
     		let version: &'static str = env!("CARGO_PKG_VERSION");
-    		println!("Scrit version {}", version);
+    		println!("
+Scrit - A push/pull interface between Scrivener and Google Docs
+Version {} 
+Scrit is created and maintained by Enda Hallahan (RB). Source code: https://github.com/EndaHallahan/Scrit
+Scrit is protected under an MIT license. Scrit is not affiliated with Google LLC or Literature & Latte Ltd.
+    			", version);
     	},
     	_ => println!("Unknown command '{}'. Type 'scrit help' for a list of valid commands.", args[1].as_str())
     }	

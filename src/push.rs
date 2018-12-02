@@ -147,7 +147,7 @@ fn export (documents: Vec<Document>, split: bool, clean: bool, directory: Option
 	for (a,b) in compiled_set.iter() {
 		println!("{}:\n{}\n\n", a, b);
 	}
-	drive_operations::upload(compiled_set, directory);
+	//drive_operations::upload(compiled_set, directory);
 }
 
 /*

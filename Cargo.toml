@@ -2,6 +2,7 @@
 name = "scrit"
 version = "0.1.0"
 authors = ["rb_ <41527196+EndaHallahan@users.noreply.github.com>"]
+license = "MIT"
 
 [dependencies]
 google-drive3 = "*"

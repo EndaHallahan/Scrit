@@ -95,10 +95,8 @@ pub fn compile<'t>(mut documents: Vec<Document>, clean: bool, split: bool) -> Ha
 	}
 	for i in 0..compiled_set.len(){
 		compiled_set[i] = format!("<!DOCTYPE html><body>{}</body></html>", &compiled_set[i]);
-		
-	}
-	for i in 0..compiled_set.len() {
 		compiled_match.insert(documents[i].get_title().to_string(), compiled_set.remove(0));
+		
 	}
 	compiled_match
 }

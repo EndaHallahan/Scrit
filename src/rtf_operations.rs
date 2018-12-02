@@ -4,7 +4,9 @@ use std::str::Chars;
 use std::rc::Rc;
 use compiler::{Attribute, ASTElement, GroupType};
 
-const WIN_1252: [char; 255] = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+const WIN_1252: [char; 255] = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+	' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
+	' ',' ',' ',' ',' ',' ',
 	' ','!','\"','#','$','%','&','\'','(',')','*','+',',','-','.','/',
 	'0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','@','A',
 	'B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R',
@@ -321,7 +323,6 @@ impl RTFBuilder {
 		self.new_group(GroupType::Hr);
 		self.end_group();
 	}
-
 
 	fn cmd_b(&mut self, val: i32) {
 		self.current_node.borrow_mut().add_att(Attribute::Bold(val == 1));
