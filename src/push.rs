@@ -2,6 +2,7 @@ use scrivx_reader;
 use scrivx_reader::Scrivening;
 use drive_operations;
 use compiler;
+use init::check_init;
 use std::fs;
 use std::fs::File;
 use std::io::Read;
@@ -51,6 +52,13 @@ impl Document {
 }
 
 pub fn push(args: &[String]) {
+	if !check_init() {
+		println!("
+Scrit must be initialized for this project before you can use this command.
+Type 'scrit init' to intialize, or type 'scrit help init' for more information.
+			");
+		return;
+	}
 	let blueprint: Vec<Scrivening> = scrivx_reader::process_scrivx();
 	
 	let mut exports: Vec<&Scrivening> = Vec::new();
@@ -147,7 +155,7 @@ fn export (documents: Vec<Document>, split: bool, clean: bool, directory: Option
 	for (a,b) in compiled_set.iter() {
 		println!("{}:\n{}\n\n", a, b);
 	}
-	//drive_operations::upload(compiled_set, directory);
+	drive_operations::upload(compiled_set, directory);
 }
 
 /*

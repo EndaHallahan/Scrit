@@ -31,12 +31,12 @@ in the compile unless otherwise specified.
 
 Options:
 -omit (-o) 		Omit specified files from compilation. Argument is a comma-separated 
-				 list of file names or ids.
--include (-i)	Ignore files' include/exclude value from compile when compiling.
+			list of file names or ids between quotation marks.
+-include (-i)		Ignore files' include/exclude value from compile when compiling.
 -split (-s)		Split pushed files into separate documents.
 -clean (-c)		Pushes to GDocs without break placeholders. Documents exported 
-				 in this manner cannot be pulled back into Scrivener.
--directory (-d)	Specifies a filepath in the Google Drive to upload to. Defaults to the root.
+			in this manner cannot be pulled back into Scrivener.
+-directory (-d)		Specifies a filepath in the Google Drive to upload to. Defaults to the root.
 					")},
 				"pull" => {println!("
 scrit pull <documents> <options>
