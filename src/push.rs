@@ -28,13 +28,13 @@ impl Document {
 		let body: String = String::new();
 		Document {title, contents, body}
 	}
-	pub fn get_title(&self) -> &String {
+	pub fn title(&self) -> &String {
 		&self.title
 	}
-	pub fn get_contents(&self) -> &Vec<String> {
+	pub fn contents(&self) -> &Vec<String> {
 		&self.contents
 	}
-	pub fn get_body(&self) -> &String {
+	pub fn body(&self) -> &String {
 		&self.body
 	}
 	pub fn body_build(&mut self, clean: bool) {
@@ -49,6 +49,32 @@ impl Document {
 		    &self.body.push_str(&contents);
 		}
 	}
+}
+
+fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, include: &bool) -> Vec<String> {
+	let mut out_vec = Vec::new();
+	if !include {
+		if !scrivening.include() {return out_vec;}
+	}
+	match omit {
+		None => {},
+		Some(omits) => {
+			if omits.contains(scrivening.title()) {return out_vec;}
+		}
+	}
+	match scrivening.filepath() {
+		Some(filepath) => out_vec.push(filepath.to_string()),
+		None => {}
+	}
+	match scrivening.children() {
+		Some(kids) => {
+			for kid in kids {
+					out_vec.extend(collect_filepaths(kid, &omit, &include));
+				}
+			}
+		None => {}
+	}
+	out_vec
 }
 
 pub fn push(args: &[String]) {
@@ -118,56 +144,12 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	if exports.is_empty() {println!("No documents selected for push!"); return;}
 	let mut doc_list: Vec<Document> = Vec::new();
 	for item in exports {
-		let mut new_doc = Document::new(item.get_title().to_string(), collect_filepaths(item, &omit, &include));
+		let mut new_doc = Document::new(item.title().to_string(), collect_filepaths(item, &omit, &include));
 		doc_list.push(new_doc);
 	}
-	export(doc_list, split, clean, directory);	
-}
-
-fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, include: &bool) -> Vec<String> {
-	let mut out_vec = Vec::new();
-	if !include {
-		if !scrivening.get_include() {return out_vec;}
-	}
-	match omit {
-		None => {},
-		Some(omits) => {
-			if omits.contains(scrivening.get_title()) {return out_vec;}
-		}
-	}
-	match scrivening.get_filepath() {
-		Some(filepath) => out_vec.push(filepath.to_string()),
-		None => {}
-	}
-	match scrivening.get_children() {
-		Some(kids) => {
-			for kid in kids {
-					out_vec.extend(collect_filepaths(kid, &omit, &include));
-				}
-			}
-		None => {}
-	}
-	out_vec
-}
-
-fn export (documents: Vec<Document>, split: bool, clean: bool, directory: Option<String>) {
-	let compiled_set = compiler::compile(documents, clean, split);	
+	let compiled_set = compiler::compile(doc_list, clean, split);	
 	for (a,b) in compiled_set.iter() {
 		println!("{}:\n{}\n\n", a, b);
 	}
 	drive_operations::upload(compiled_set, directory);
 }
-
-/*
-scrit push <files> <options>
-
-Options:
--omit (-o) 		Omit specified files from compilation. Argument is a comma-separated 
-				 list of file names or ids.
--include (-i)	Ignore files' include/exclude value from compile when compiling.
--split (-s)		Split pushed files into separate documents.
--clean (-c)		Pushes to GDocs without break placeholders. Documents exported 
-				 in this manner cannot be pulled back into Scrivener.
--directory (-d)	Specefies a filepath in the Google Drive to upload to. Defaults to the root.
-*/
-

@@ -36,9 +36,10 @@ fn main() {
     		let version: &'static str = env!("CARGO_PKG_VERSION");
     		println!("
 Scrit - A push/pull interface between Scrivener and Google Docs
-Version {} 
-Scrit is created and maintained by Enda Hallahan (RB). Source code: https://github.com/EndaHallahan/Scrit
+Version {}
+Scrit was created and is maintained by Enda Hallahan. Source code available at https://github.com/EndaHallahan/Scrit
 Scrit is protected under an MIT license. Scrit is not affiliated with Google LLC or Literature & Latte Ltd.
+Scrivener © Literature & Latte Ltd. Google Drive and Google Docs © Google LLC. Please don't sue me.
     			", version);
     	},
     	_ => println!("Unknown command '{}'. Type 'scrit help' for a list of valid commands.", args[1].as_str())

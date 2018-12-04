@@ -29,22 +29,22 @@ pub struct Scrivening {
 	children: Option<Vec<Scrivening>>
 }
 impl Scrivening {
-	pub fn get_title(&self) -> &String {
+	pub fn title(&self) -> &String {
 		&self.title
 	}
-	pub fn get_id(&self) -> &String  {
+	pub fn id(&self) -> &String  {
 		&self.id
 	}
-	pub fn get_include(&self) -> &bool {
+	pub fn include(&self) -> &bool {
 		&self.include
 	}
-	pub fn get_depth(&self) -> &i32 {
+	pub fn depth(&self) -> &i32 {
 		&self.depth
 	}
-	pub fn get_filepath(&self) -> &Option<String> {
+	pub fn filepath(&self) -> &Option<String> {
 		&self.filepath
 	}
-	pub fn get_children(&self) -> &Option<Vec<Scrivening>> {
+	pub fn children(&self) -> &Option<Vec<Scrivening>> {
 		&self.children
 	}
 }
@@ -121,12 +121,12 @@ pub fn process_scrivx() -> Vec<Scrivening> {
 
 pub fn get_scrivening<'a> (name: &String, list: &'a[Scrivening]) -> Option<&'a Scrivening> {
 	for scriv in list {
-		if name.starts_with("#") && scriv.get_id() == name.get(1..).unwrap() {
+		if name.starts_with("#") && scriv.id() == name.get(1..).unwrap() {
 			return Some(scriv);
-		} else if scriv.get_title() == name {
+		} else if scriv.title() == name {
 			return Some(scriv);
 		} else {
-			match scriv.get_children() {
+			match scriv.children() {
 				None => continue,
 				Some(children) => {
 					match get_scrivening(name, children) {

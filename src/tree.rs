@@ -28,9 +28,9 @@ fn list_scriv_contents(blueprint: &Vec<Scrivening>, depth: i32, active_levels: &
 			}		
 			i += 1;
 		}
-		out.push_str(&format!("{} [{}]", &scrivening.get_title(), &scrivening.get_id()));
+		out.push_str(&format!("{} [{}]", &scrivening.title(), &scrivening.id()));
 		println!("{}", out);
-		match scrivening.get_children() {
+		match scrivening.children() {
 			None => continue,
 			Some(ref children) => {
 				if depth >= active_levels.len() as i32{

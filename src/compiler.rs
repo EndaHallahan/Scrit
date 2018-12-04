@@ -71,7 +71,7 @@ impl<'a> ASTElement {
 	}
 }
 
-pub fn rtf_to_html<'t>(rtf: &String) -> String {
+fn rtf_to_html<'t>(rtf: &String) -> String {
 	write_html(process_rtf(rtf))
 }
 
@@ -79,13 +79,13 @@ fn html_to_rtf(html: &String) /*-> &String*/ {
 	write_rtf(process_html(html))
 }
 
-pub fn compile<'t>(mut documents: Vec<Document>, clean: bool, split: bool) -> HashMap<String, String> {
+pub fn compile(mut documents: Vec<Document>, clean: bool, split: bool) -> HashMap<String, String> {
 	let mut compiled_match: HashMap<String, String> = HashMap::new();
 	let mut compiled_set: Vec<String> = Vec::new();
 	let mut compiled_string: String = String::new();
 	for doc in &mut documents {
 		doc.body_build(clean);
-		let compiled_string = format!("<h2 data-scrivtitle='true'>{}</h2>{}", doc.get_title(), rtf_to_html(doc.get_body()));
+		let compiled_string = format!("<h2 data-scrivtitle='true'>{}</h2>{}", doc.title(), rtf_to_html(doc.body()));
 		compiled_set.push(compiled_string);
 	}
 	if !split {
@@ -98,7 +98,7 @@ pub fn compile<'t>(mut documents: Vec<Document>, clean: bool, split: bool) -> Ha
 		
 	}
 	for i in 0..compiled_set.len() {
-		compiled_match.insert(documents[i].get_title().to_string(), compiled_set.remove(0));
+		compiled_match.insert(documents[i].title().to_string(), compiled_set.remove(0));
 	}
 	compiled_match
 }
