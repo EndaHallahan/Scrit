@@ -77,13 +77,25 @@ fn html_to_rtf(html: &String) /*-> &String*/ {
 	write_rtf(process_html(html))
 }
 
-pub fn compile(documents: Vec<Document>, clean: bool, split: bool) -> Vec<ScritFile> {
+pub fn compile(documents: Vec<Document>, clean: bool, split: bool, name: Option<String>) -> Vec<ScritFile> {
 	let mut scrit_file_list: Vec<ScritFile> = Vec::new();
 	if !split {
-		scrit_file_list.push(ScritFile::new(documents));
+		let mut scrit_file = ScritFile::new(documents);
+		match name {
+			Some(title) => scrit_file.set_title(title),
+			None => {}
+		}
+		scrit_file_list.push(scrit_file);
 	} else {
+		let title_prefix = match name {
+			Some(title) => format!("{} - ", title.to_string()),
+			None => String::new()
+		};
 		for doc in documents {
-			scrit_file_list.push(ScritFile::new(vec![doc]));
+			let doc_title = doc.title().to_string();
+			let mut scrit_file = ScritFile::new(vec![doc]);
+			scrit_file.set_title(format!("{}{}", title_prefix, doc_title));
+			scrit_file_list.push(scrit_file);
 		}
 	}
 	for mut scrit_file in &mut scrit_file_list {

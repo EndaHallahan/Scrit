@@ -129,6 +129,7 @@ pub fn does_file_exist(map: &Element, in_id: &String) -> bool {
 	let files = map.get_child("Drive", "argabarga").unwrap()
 		.get_child("Files", "argabarga").unwrap()
 			.children();
+	let mut found: bool = false;
 	for file in files {
 		match file.attr("id") {
 			Some(id) => {

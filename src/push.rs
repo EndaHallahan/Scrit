@@ -11,6 +11,7 @@ enum PushState {
 	Initial,
 	Omit,
 	Directory,
+	Name,
 	Null
 }
 
@@ -86,7 +87,9 @@ impl ScritFile {
 		for mut doc in &mut self.contents {
 			doc.body_build(clean);
 		}
-		self.title = self.contents[0].title().to_string();
+		if self.title.is_empty() {
+			self.title = self.contents[0].title().to_string();
+		}		
 	}
 }
 
@@ -132,6 +135,7 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	let mut split: bool = false;
 	let mut clean: bool = false;
 	let mut directory: Option<String> = None;
+	let mut name: Option<String> = None;
 
 	/* Process command line arguments */
 	let mut state: PushState = PushState::Initial;
@@ -139,6 +143,7 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 		match arg.as_str() {
 			"-omit" | "-o" => {state = PushState::Omit;},
 			"-directory" | "-d" => {state = PushState::Directory;},
+			"-name" | "-n" => {state = PushState::Name;},
 			"-include" | "-i" => {
 				include = true;
 				state = PushState::Null;
@@ -172,6 +177,10 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 						directory = Some(arg.trim().to_string());
 						state = PushState::Null;
 					},
+					PushState::Name => {
+						name = Some(arg.trim().to_string());
+						state = PushState::Null;
+					},
 					_ => {
 						println!("Invalid argument: {}", arg);
 						state = PushState::Null;
@@ -187,7 +196,7 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 		doc_list.push(new_doc);
 	}
 
-	let mut compiled_set = compiler::compile(doc_list, clean, split);	
+	let mut compiled_set = compiler::compile(doc_list, clean, split, name);	
 	/*for scrit_file in &compiled_set {
 		println!("{:?}\n", scrit_file.body());
 	}*/
