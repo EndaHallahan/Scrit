@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use push::{Document, ScritFile};
 use rtf_operations::{process_rtf, write_rtf};
 use html_operations::{process_html, write_html};

@@ -2,19 +2,18 @@ extern crate hyper;
 extern crate hyper_native_tls;
 extern crate yup_oauth2;
 extern crate google_drive3;
-extern crate quick_xml;
 extern crate minidom;
 extern crate walkdir;
 extern crate rctree;
 
 mod scrivx_reader;
 mod drive_operations;
+mod map_operations;
 mod rtf_operations;
 mod html_operations;
 mod compiler;
 mod client_info;
 mod tree;
-mod init;
 mod push;
 mod pull;
 mod help;
@@ -26,7 +25,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     if !(args.len() > 1) {return;}
     match args[1].as_str() {
-    	"init" => init::init(),
+    	"init" => map_operations::init(),
     	"push" => push::push(&args[2..]),
     	"pull" => pull::pull(&args[2..]),
     	"tree" => tree::binder_tree(),

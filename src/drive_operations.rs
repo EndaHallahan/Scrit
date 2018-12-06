@@ -1,4 +1,4 @@
-use init::*;
+use map_operations::*;
 use push::ScritFile;
 use hyper;
 use hyper::net::HttpsConnector;
@@ -7,10 +7,8 @@ use hyper_native_tls::NativeTlsClient;
 use yup_oauth2::{Authenticator, FlowType, ApplicationSecret, DiskTokenStorage,
                  DefaultAuthenticatorDelegate, parse_application_secret};
 use google_drive3::{Drive, File};
-use std::collections::HashMap;
 use std::io::Cursor;
 use std::fs;
-use minidom::Element;
 use client_info::CLIENT_SECRET;
 
 fn read_client_secret(client_info: &'static str) -> ApplicationSecret {
@@ -47,7 +45,7 @@ pub fn make_document(name: &String, contents: &String, dir_id: &String, hub: &Dr
 			println!("OK! Successfully uploaded '{}'...", name);
 			y.id.unwrap()
 		},
-		Err(x) => {panic!("ERROR! {:?}",x); String::new()}
+		Err(x) => {panic!("ERROR! {:?}",x);}
 	}
 }
 
@@ -63,7 +61,7 @@ pub fn update_document(name: &String, contents: &String, dir_id: &String, file_i
 			println!("OK! Successfully updated '{}'...", name);
 			y.id.unwrap()
 		},
-		Err(x) => {panic!("ERROR! {:?}",x); String::new()}
+		Err(x) => {panic!("ERROR! {:?}",x);}
 	}
 }
 
@@ -95,10 +93,10 @@ pub fn upload(compiled_set: &mut Vec<ScritFile>, directory: Option<String>) {
 		map.write_to(&mut fs::File::create("Scrit/scrit_map.xml").unwrap());
 	}
 	for scrit_file in compiled_set {
-		let mut file_id: String = String::new();
+		let mut file_id: String;
 		match check_existing_files(&map, scrit_file.title()) {
-			Some(id) => {file_id = (update_document(scrit_file.title(), scrit_file.body(), &dir_id, id, &hub));},
-			None => {file_id = (make_document(scrit_file.title(), scrit_file.body(), &dir_id, &hub));}
+			Some(id) => {file_id = update_document(scrit_file.title(), scrit_file.body(), &dir_id, id, &hub);},
+			None => {file_id = make_document(scrit_file.title(), scrit_file.body(), &dir_id, &hub);}
 		}
 		scrit_file.set_id(file_id);
 	}	

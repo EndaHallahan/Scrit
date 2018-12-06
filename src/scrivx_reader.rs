@@ -90,7 +90,7 @@ pub fn get_scrivx() -> Result<String, WrongDirError> {
 }
 
 pub fn process_scrivx() -> Vec<Scrivening> {
-	let mut scrivx_path: String = String::new();
+	let mut scrivx_path: String;
 	match get_scrivx() {
 		Ok(scrivx) => scrivx_path = scrivx,
 		Err(e) => panic!("Error: {}", e.description())

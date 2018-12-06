@@ -3,7 +3,6 @@ use std::path::Path;
 use std::error::Error;
 use std::io::{Read, Write};
 use std::fs;
-use std::mem::replace;
 use minidom::Element;
 
 trait DeleteElement {
@@ -130,7 +129,6 @@ pub fn does_file_exist(map: &Element, in_id: &String) -> bool {
 	let files = map.get_child("Drive", "argabarga").unwrap()
 		.get_child("Files", "argabarga").unwrap()
 			.children();
-	let mut found: bool = false;
 	for file in files {
 		match file.attr("id") {
 			Some(id) => {

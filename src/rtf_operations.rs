@@ -174,7 +174,6 @@ impl RTFReader {
 }
 
 struct RTFBuilder {
-	current_instruction: Instruction,
 	current_node: Node<ASTElement>,
 	def_char_state: Vec<Attribute>,
 	def_par_state: Vec<Attribute>,
@@ -183,15 +182,14 @@ struct RTFBuilder {
 	skip: i32,
 }
 impl RTFBuilder {
-	fn new() -> RTFBuilder {	
-		let current_instruction = Instruction::Null;
+	fn new() -> RTFBuilder {
 		let anchor = Node::new(ASTElement::new(GroupType::Anchor));
 		let current_node = Node::new(ASTElement::new(GroupType::Document));
 		let def_char_state = Vec::new();
 		let def_par_state = Vec::new();
 		let last_paragraph = Node::new(ASTElement::new(GroupType::Null));
 		let skip = 0;
-		RTFBuilder{current_instruction, current_node, def_char_state, def_par_state, last_paragraph, anchor, skip}
+		RTFBuilder{current_node, def_char_state, def_par_state, last_paragraph, anchor, skip}
 	}
 	fn build(&mut self, instructions: &Vec<Instruction>) -> Node<ASTElement> {
 		self.current_node = Node::new(ASTElement::new(GroupType::Document));

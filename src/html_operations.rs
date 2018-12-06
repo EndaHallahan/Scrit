@@ -30,7 +30,7 @@ impl HTMLWriter {
 		self.output_string.clone()
 	}
 	fn start_element(&mut self, element: Ref<ASTElement>) {
-		let mut tag: &str = "";
+		let mut tag: &str;
 		let mut attributes = String::new();
 		let mut styles = "style='".to_string();
 		match element.ele_type() {

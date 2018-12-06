@@ -2,7 +2,7 @@ use scrivx_reader;
 use scrivx_reader::Scrivening;
 use drive_operations;
 use compiler;
-use init::*;
+use map_operations::*;
 use std::fs::File;
 use std::io::Read;
 use minidom::Element;
@@ -29,9 +29,6 @@ impl Document {
 	}
 	pub fn title(&self) -> &String {
 		&self.title
-	}
-	pub fn contents(&self) -> &Vec<String> {
-		&self.contents
 	}
 	pub fn body(&self) -> &String {
 		&self.body
@@ -194,7 +191,7 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	/*for scrit_file in &compiled_set {
 		println!("{:?}\n", scrit_file.body());
 	}*/
-	let uploaded_ids = drive_operations::upload(&mut compiled_set, directory);
+	drive_operations::upload(&mut compiled_set, directory);
 
 	// Populate map
 	println!("Updating map...");
@@ -214,6 +211,6 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 		}
 	}
 	map.write_to(&mut File::create("Scrit/scrit_map.xml").unwrap());
-	
+
 	println!("Done!")
 }
