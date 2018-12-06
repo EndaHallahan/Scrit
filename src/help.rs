@@ -90,7 +90,7 @@ likely the first command you will want to use.
 
 The Push mechanism, put simply, allows you to take parts of any scrivener project and copy them to a 
 Google Drive. To say it another way, you are taking your local documents and *push*ing them to a Google Drive,
-from which they can be opened in Google Docs. It is quite simple to use, but offers a lot of versitility in 
+from which they can be opened in Google Docs. It is quite simple to use, but offers a lot of versatility in 
 what you wish to upload. Additionally, files will be placed inside a specially-created project folder, so
 you don't have to worry about keeping them organized.
 
@@ -130,8 +130,8 @@ entire project to your Google Drive as a single document, this can be done by sp
 document names or ids.
 
 The options argument comes after all of your documents. It is completely optional. These commands affect the way
-the document is pushed. Option arguments are preceded by a -, and you can have as many as you wish. Additionally,
-they come in both long and short form. For example, the 'clean' option can be specefied as either '-clean' or '-c':
+the document is pushed. Option arguments are preceded by a -, and you can have as many as you wish. Additionally, 
+they come in both long and short form. For example, the 'clean' option can be specified as either '-clean' or '-c':
 
 	scrit push example1 example2 -c
 
@@ -143,7 +143,7 @@ type 'scrit help tutorial3'.
 Pull
 ----
 Pull is the reverse of Push: it takes documents on your Google Drive and imports (or pulls) them into your
-Scrivenr project. However, it is important to note that you can only pull documents that you (or someone else) has
+Scrivener project. However, it is important to note that you can only pull documents that you (or someone else) has
 pushed using Scrit. This is because pushed documents contain something very important: break placeholders.
 
 If you have already pushed a document to your Google Drive, you may have noticed something odd in the text, like

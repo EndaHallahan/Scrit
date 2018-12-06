@@ -1,8 +1,5 @@
-use std::collections::HashMap;
 use rctree::{Node, NodeEdge};
-use std::str::Chars;
 use std::cell::Ref;
-use std::fmt;
 use compiler::{Attribute, ASTElement, GroupType};
 
 struct HTMLReader {

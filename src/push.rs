@@ -2,17 +2,14 @@ use scrivx_reader;
 use scrivx_reader::Scrivening;
 use drive_operations;
 use compiler;
-use init::check_init;
-use std::fs;
+use init::*;
 use std::fs::File;
 use std::io::Read;
-
-use rtf_operations;
+use minidom::Element;
 
 enum PushState {
 	Initial,
 	Omit,
-	Include,
 	Directory,
 	Null
 }
@@ -22,11 +19,13 @@ pub struct Document {
 	title: String,
 	contents: Vec<String>, 
 	body: String,
+	location: String
 }
 impl Document {
 	fn new(title: String, contents: Vec<String>) -> Document {
 		let body: String = String::new();
-		Document {title, contents, body}
+		let location: String = String::new();
+		Document {title, contents, body, location}
 	}
 	pub fn title(&self) -> &String {
 		&self.title
@@ -38,20 +37,63 @@ impl Document {
 		&self.body
 	}
 	pub fn body_build(&mut self, clean: bool) {
-		for filepath in &self.contents {
-			let mut f = File::open(filepath).expect("file not found");
+		for id in &self.contents {
+			let mut f = File::open(format!("./Files/Docs\\{}.rtf", id)).expect("file not found");
 		    let mut contents = String::new();
 		    f.read_to_string(&mut contents)
 		        .expect("Something went wrong reading the file!");
 		    if !clean {
-		    	&self.body.push_str(&format!("{{\\scrivpath {{[[[{}]]]}}}}", filepath.trim_left_matches("./Files/Docs\\")));
+		    	&self.body.push_str(&format!("{{\\scrivpath {{[[[{}]]]}}}}", id));
 		    }
 		    &self.body.push_str(&contents);
 		}
 	}
 }
 
-fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, include: &bool) -> Vec<String> {
+pub struct ScritFile {
+	title: String,
+	id: String,
+	contents: Vec<Document>,
+	body: String
+
+}
+impl ScritFile {
+	pub fn new(contents: Vec<Document>) -> ScritFile {
+		let id = String::new();
+		let title = String::new();
+		let body = String::new();
+		ScritFile{title, id, contents, body}
+	}
+	pub fn title(&self) -> &String {
+		&self.title
+	}
+	pub fn id(&self) -> &String {
+		&self.id
+	}
+	pub fn contents(&self) -> &Vec<Document> {
+		&self.contents
+	}
+	pub fn set_title(&mut self, in_title: String) {
+		self.title = in_title;
+	}
+	pub fn set_id(&mut self, in_id: String) {
+		self.id = in_id;
+	}
+	pub fn body(&self) -> &String {
+		&self.body
+	}
+	pub fn set_body(&mut self, in_body: String) {
+		self.body = in_body;
+	}
+	pub fn body_build(&mut self, clean: bool) {
+		for mut doc in &mut self.contents {
+			doc.body_build(clean);
+		}
+		self.title = self.contents[0].title().to_string();
+	}
+}
+
+fn collect_ids(scrivening: &Scrivening, omit: &Option<Vec<String>>, include: &bool) -> Vec<String> {
 	let mut out_vec = Vec::new();
 	if !include {
 		if !scrivening.include() {return out_vec;}
@@ -63,13 +105,13 @@ fn collect_filepaths(scrivening: &Scrivening, omit: &Option<Vec<String>>, includ
 		}
 	}
 	match scrivening.filepath() {
-		Some(filepath) => out_vec.push(filepath.to_string()),
+		Some(_) => out_vec.push(scrivening.id().to_string()),
 		None => {}
 	}
 	match scrivening.children() {
 		Some(kids) => {
 			for kid in kids {
-					out_vec.extend(collect_filepaths(kid, &omit, &include));
+					out_vec.extend(collect_ids(kid, &omit, &include));
 				}
 			}
 		None => {}
@@ -144,12 +186,34 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	if exports.is_empty() {println!("No documents selected for push!"); return;}
 	let mut doc_list: Vec<Document> = Vec::new();
 	for item in exports {
-		let mut new_doc = Document::new(item.title().to_string(), collect_filepaths(item, &omit, &include));
+		let mut new_doc = Document::new(item.title().to_string(), collect_ids(item, &omit, &include));
 		doc_list.push(new_doc);
 	}
-	let compiled_set = compiler::compile(doc_list, clean, split);	
-	for (a,b) in compiled_set.iter() {
-		println!("{}:\n{}\n\n", a, b);
+
+	let mut compiled_set = compiler::compile(doc_list, clean, split);	
+	/*for scrit_file in &compiled_set {
+		println!("{:?}\n", scrit_file.body());
+	}*/
+	let uploaded_ids = drive_operations::upload(&mut compiled_set, directory);
+
+	// Populate map
+	println!("Updating map...");
+	let mut map = get_map();
+	for scrit_file in compiled_set {
+		let file_element = get_me_a_file_with_id_and_title(&mut map, scrit_file.id(), scrit_file.title());		
+		for doc in scrit_file.contents() {
+			let document_node = file_element.append_child(Element::bare("Document"));
+			for subdoc in &doc.contents {
+				document_node.append_child(Element::builder("ID")
+									.append(subdoc)
+									.build());
+				document_node.append_child(Element::builder("Checksum")
+									.append("argabarga")
+									.build());
+			}
+		}
 	}
-	drive_operations::upload(compiled_set, directory);
+	map.write_to(&mut File::create("Scrit/scrit_map.xml").unwrap());
+	
+	println!("Done!")
 }

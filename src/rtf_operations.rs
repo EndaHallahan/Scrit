@@ -1,7 +1,4 @@
-use std::collections::HashMap;
 use rctree::Node;
-use std::str::Chars;
-use std::rc::Rc;
 use compiler::{Attribute, ASTElement, GroupType};
 
 const WIN_1252: [char; 255] = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',

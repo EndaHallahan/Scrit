@@ -2,7 +2,6 @@ use std::fs;
 use std::io::Read;
 use std::error::Error;
 use std::fmt;
-use std::path::Path;
 use minidom::Element;
 use walkdir::WalkDir;
 

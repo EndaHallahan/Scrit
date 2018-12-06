@@ -1,8 +1,7 @@
-use scrivx_reader;
-use scrivx_reader::Scrivening;
+use scrivx_reader::{Scrivening, process_scrivx};
 
 pub fn binder_tree() {
-	let ref blueprint: Vec<Scrivening> = scrivx_reader::process_scrivx();
+	let ref blueprint: Vec<Scrivening> = process_scrivx();
 	println!("{}", "Binder");
 	list_scriv_contents(&blueprint, 1, &mut vec![true]);
 }
