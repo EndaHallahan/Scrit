@@ -154,8 +154,7 @@ this:
 	[[[123]]]
 
 This is a break placeholder. They are special markers that tell Scrit where each document or subdocument begins and 
-ends. These are *very important* to the Pull mechanism, so please do not delete or alter them. Also, these cannot be
-replicated through just text, so don't bother trying.
+ends. These are *very important* to the Pull mechanism, so please do not delete or alter them.
 
 Now then, the pull command looks like this:
 

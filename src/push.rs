@@ -66,7 +66,6 @@ pub struct ScritFile {
 	id: String,
 	contents: Vec<Document>,
 	body: String
-
 }
 impl ScritFile {
 	pub fn new(contents: Vec<Document>) -> ScritFile {
@@ -147,7 +146,6 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	let mut include: bool = false;
 	let mut split: bool = false;
 	let mut clean: bool = false;
-	let mut directory: Option<String> = None;
 	let mut name: Option<String> = None;
 
 	/* Process command line arguments */
