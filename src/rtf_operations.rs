@@ -200,9 +200,9 @@ impl RTFBuilder {
 			self.execute(instruction);
 		}
 
-		/*for node in self.current_node.root().descendants() {
+		for node in self.current_node.root().descendants() {
 			println!("{:?}",node.borrow());
-		}*/
+		}
 		
 		self.current_node.root()
 	}
@@ -268,8 +268,8 @@ impl RTFBuilder {
 			"nosupersub" =>self.cmd_nosupersub(),
 			"fs" =>self.cmd_fs(att_value),
 			"par" => self.cmd_par(),
+			"pard" => self.cmd_pard(),
 			"pgnrestart" => self.cmd_pgnrestart(),
-			"scrivpath" => self.cmd_scrivpath(),
 			"emdash" => self.cmd_emdash(),
 			"endash" => self.cmd_endash(),
 			"tab" => self.cmd_tab(),
@@ -365,8 +365,13 @@ impl RTFBuilder {
 		self.new_group(GroupType::Paragraph);
 	}
 
-	fn cmd_scrivpath(&mut self) {
-		self.new_group(GroupType::ScrivPath);
+	fn cmd_pard(&mut self) {
+		if self.current_node.borrow().ele_type() != &GroupType::Paragraph {
+			while self.current_node.borrow().ele_type() != &GroupType::Body {
+				self.end_group();
+			}
+			self.new_group(GroupType::Paragraph);
+		}
 	}
 }
 

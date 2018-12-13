@@ -31,8 +31,9 @@ pub fn get_hub() -> Drive<hyper::Client, Authenticator<DefaultAuthenticatorDeleg
 	Drive::new(client, authenticator)
 }
 
-pub fn make_document(name: &String, contents: &String, dir_id: &String, hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>)
-->String {
+pub fn make_document(name: &String, contents: &String, dir_id: &String, 
+	hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>
+) -> String {
 	let mut doc = File::default();
 	doc.name = Some(name.to_string());
 	doc.mime_type = Some("text/html".to_string());
@@ -49,15 +50,17 @@ pub fn make_document(name: &String, contents: &String, dir_id: &String, hub: &Dr
 	}
 }
 
-pub fn update_document(name: &String, contents: &String, dir_id: &String, file_id: &str, hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>)
-->String {
+pub fn update_document(name: &String, contents: &String, dir_id: &String, file_id: &str, 
+	hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>
+) -> String {
 	let mut doc = File::default();
 	doc.mime_type = Some("text/html".to_string());
 	match hub.files().update(doc, file_id)
 		.param("fields", "id")
 		.upload(Cursor::new(contents.as_bytes()), "application/vnd.google-apps.document".parse().unwrap()) 
 	{
-		Ok((_, y)) => {
+		Ok((x, y)) => {
+			println!("{:?}",x);
 			println!("OK! Successfully updated '{}'...", name);
 			y.id.unwrap()
 		},
@@ -65,8 +68,9 @@ pub fn update_document(name: &String, contents: &String, dir_id: &String, file_i
 	}
 }
 
-pub fn make_directory(name: String, hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>)
--> String {
+pub fn make_directory(name: String, 
+	hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>
+) -> String {
 	let mut dir = File::default();
 	dir.name = Some(name.to_string());
 	dir.mime_type = Some("application/vnd.google-apps.folder".to_string());

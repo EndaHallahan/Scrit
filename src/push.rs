@@ -16,34 +16,48 @@ enum PushState {
 }
 
 #[derive(Debug)]
+pub struct BodyText {
+	id: String,
+	body: String
+}
+impl BodyText {
+	pub fn new(id: String, body: String) -> BodyText {
+		BodyText {id, body}
+	}
+	pub fn id(&self) -> &String {
+		&self.id
+	}
+	pub fn body(&self) -> &String {
+		&self.body
+	}
+}
+
+#[derive(Debug)]
 pub struct Document {
 	title: String,
 	contents: Vec<String>, 
-	body: String,
+	body: Vec<BodyText>,
 	location: String
 }
 impl Document {
 	fn new(title: String, contents: Vec<String>) -> Document {
-		let body: String = String::new();
+		let body: Vec<BodyText> = Vec::new();
 		let location: String = String::new();
 		Document {title, contents, body, location}
 	}
 	pub fn title(&self) -> &String {
 		&self.title
 	}
-	pub fn body(&self) -> &String {
+	pub fn body(&self) -> &Vec<BodyText> {
 		&self.body
 	}
-	pub fn body_build(&mut self, clean: bool) {
+	pub fn body_build(&mut self) {
 		for id in &self.contents {
 			let mut f = File::open(format!("./Files/Docs\\{}.rtf", id)).expect("file not found");
 		    let mut contents = String::new();
 		    f.read_to_string(&mut contents)
 		        .expect("Something went wrong reading the file!");
-		    if !clean {
-		    	&self.body.push_str(&format!("{{\\scrivpath {{[[[{}]]]}}}}", id));
-		    }
-		    &self.body.push_str(&contents);
+		    &self.body.push(BodyText::new(id.to_string(), contents));
 		}
 	}
 }
@@ -83,9 +97,9 @@ impl ScritFile {
 	pub fn set_body(&mut self, in_body: String) {
 		self.body = in_body;
 	}
-	pub fn body_build(&mut self, clean: bool) {
+	pub fn body_build(&mut self) {
 		for mut doc in &mut self.contents {
-			doc.body_build(clean);
+			doc.body_build();
 		}
 		if self.title.is_empty() {
 			self.title = self.contents[0].title().to_string();
@@ -197,9 +211,9 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	}
 
 	let mut compiled_set = compiler::compile(doc_list, clean, split, name);	
-	/*for scrit_file in &compiled_set {
+	for scrit_file in &compiled_set {
 		println!("{:?}\n", scrit_file.body());
-	}*/
+	}
 	drive_operations::upload(&mut compiled_set, directory);
 
 	// Populate map
@@ -220,6 +234,6 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 		}
 	}
 	map.write_to(&mut File::create("Scrit/scrit_map.xml").unwrap());
-
+	
 	println!("Done!")
 }

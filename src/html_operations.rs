@@ -10,15 +10,14 @@ impl HTMLReader {
 }
 
 struct HTMLWriter {
-	output_string: String
-	//Need to store current font table, colour table, etc. 
-	//Replace them when a new one is found.
+	output_string: String,
+	in_body: bool
 }
 impl HTMLWriter {
 	fn new () -> HTMLWriter {
-		let ast = Node::new(ASTElement::new(GroupType::Null));
 		let output_string = String::new();
-		HTMLWriter{output_string}
+		let in_body = false;
+		HTMLWriter{output_string, in_body}
 	}
 	fn write(&mut self, ast: Node<ASTElement>) -> String {
 		for node_edge in ast.traverse() {
@@ -37,14 +36,11 @@ impl HTMLWriter {
 			GroupType::Text | GroupType::Fragment => {tag = "span";},
 			GroupType::Paragraph => {tag = "p";},
 			GroupType::Hr => {tag = "hr";},
-			GroupType::ScrivPath => {
-				tag = "div";
-				attributes = format!("{} data-scrivpath='true'", attributes);
-			},
 			//GroupType::Document => "html",
-			//GroupType::Body => "body",
+			GroupType::Body => {self.in_body = true; return;},
 			_ => return
 		};
+		if !self.in_body {return;}
 		let atts = element.attributes();
 		for att in atts {
 			match *att {
@@ -65,14 +61,14 @@ impl HTMLWriter {
 	}
 	fn end_element(&mut self, element: Ref<ASTElement>) {
 		let tag: &str = match element.ele_type() {
-			GroupType::Text => "span",
-			GroupType::Paragraph => "p",
-			GroupType::Hr => {"hr"},
-			GroupType::ScrivPath => "div",
+			GroupType::Text => "</span>",
+			GroupType::Paragraph => "</p><p></p>",
+			GroupType::Hr => "</hr>",
+			GroupType::Body => {self.in_body = false; return;},
 			_ => return
 		};
-		let tag_string = format!("</{}>", tag);
-		self.output_string = format!("{}{}", self.output_string, tag_string);
+		if !self.in_body {return;}
+		self.output_string = format!("{}{}", self.output_string, tag);
 	}
 }
 
