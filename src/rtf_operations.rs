@@ -200,9 +200,9 @@ impl RTFBuilder {
 			self.execute(instruction);
 		}
 
-		for node in self.current_node.root().descendants() {
+		/*for node in self.current_node.root().descendants() {
 			println!("{:?}",node.borrow());
-		}
+		}*/
 		
 		self.current_node.root()
 	}

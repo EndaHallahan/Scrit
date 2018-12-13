@@ -10,7 +10,6 @@ use minidom::Element;
 enum PushState {
 	Initial,
 	Omit,
-	Directory,
 	Name,
 	Null
 }
@@ -156,7 +155,6 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	for arg in args {
 		match arg.as_str() {
 			"-omit" | "-o" => {state = PushState::Omit;},
-			"-directory" | "-d" => {state = PushState::Directory;},
 			"-name" | "-n" => {state = PushState::Name;},
 			"-include" | "-i" => {
 				include = true;
@@ -187,10 +185,6 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 						omit = Some(arg_list);
 						state = PushState::Null;
 					},
-					PushState::Directory => {
-						directory = Some(arg.trim().to_string());
-						state = PushState::Null;
-					},
 					PushState::Name => {
 						name = Some(arg.trim().to_string());
 						state = PushState::Null;
@@ -211,10 +205,10 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	}
 
 	let mut compiled_set = compiler::compile(doc_list, clean, split, name);	
-	for scrit_file in &compiled_set {
+	/*for scrit_file in &compiled_set {
 		println!("{:?}\n", scrit_file.body());
-	}
-	drive_operations::upload(&mut compiled_set, directory);
+	}*/
+	drive_operations::upload(&mut compiled_set);
 
 	// Populate map
 	println!("Updating map...");

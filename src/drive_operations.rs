@@ -59,8 +59,7 @@ pub fn update_document(name: &String, contents: &String, dir_id: &String, file_i
 		.param("fields", "id")
 		.upload(Cursor::new(contents.as_bytes()), "application/vnd.google-apps.document".parse().unwrap()) 
 	{
-		Ok((x, y)) => {
-			println!("{:?}",x);
+		Ok((_, y)) => {
 			println!("OK! Successfully updated '{}'...", name);
 			y.id.unwrap()
 		},
@@ -86,7 +85,7 @@ pub fn make_directory(name: String,
 	}
 }
 
-pub fn upload(compiled_set: &mut Vec<ScritFile>, directory: Option<String>) {
+pub fn upload(compiled_set: &mut Vec<ScritFile>) {
 	let hub = get_hub();
 	let mut map = get_map();
 	let title = get_title_text(&map);

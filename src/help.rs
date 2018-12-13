@@ -36,7 +36,9 @@ Options:
 -split (-s)		Split pushed files into separate documents.
 -clean (-c)		Pushes to GDocs without break placeholders. Documents exported 
 			in this manner cannot be pulled back into Scrivener.
--directory (-d)		Specifies a filepath in the Google Drive to upload to. Defaults to the root.
+-name (-n)		Specifies an alternate filename to use when uploading to a Google Drive. 
+			If the split option is also specified, the filename will be appended as 
+			a prefix to all generated files, separated by a hyphen.
 					")},
 				"pull" => {println!("
 scrit pull <documents> <options>
