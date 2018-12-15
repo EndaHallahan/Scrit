@@ -36,11 +36,11 @@ pub fn make_document(name: &String, contents: &String, dir_id: &String,
 ) -> String {
 	let mut doc = File::default();
 	doc.name = Some(name.to_string());
-	doc.mime_type = Some("text/html".to_string());
+	doc.mime_type = Some("application/vnd.google-apps.document".to_string());
 	doc.parents = Some(vec![dir_id.clone()]);
 	match hub.files().create(doc)
 		.param("fields", "id")
-		.upload(Cursor::new(contents.as_bytes()), "application/vnd.google-apps.document".parse().unwrap()) 
+		.upload(Cursor::new(contents.as_bytes()), "text/html".parse().unwrap()) 
 	{
 		Ok((_, y)) => {
 			println!("OK! Successfully uploaded '{}'...", name);
@@ -54,10 +54,10 @@ pub fn update_document(name: &String, contents: &String, dir_id: &String, file_i
 	hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>
 ) -> String {
 	let mut doc = File::default();
-	doc.mime_type = Some("text/html".to_string());
+	doc.mime_type = Some("application/vnd.google-apps.document".to_string());
 	match hub.files().update(doc, file_id)
 		.param("fields", "id")
-		.upload(Cursor::new(contents.as_bytes()), "application/vnd.google-apps.document".parse().unwrap()) 
+		.upload(Cursor::new(contents.as_bytes()), "text/html".parse().unwrap()) 
 	{
 		Ok((_, y)) => {
 			println!("OK! Successfully updated '{}'...", name);

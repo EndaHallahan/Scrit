@@ -50,6 +50,21 @@ impl HTMLWriter {
 				Attribute::Bold(true) => {
 					styles = format!("{}font-weight:bold;", styles);
 				},
+				Attribute::Underline(true) => {
+					styles = format!("{}text-decoration-line:underline;", styles);
+				},
+				Attribute::Strikethrough(true) => {
+					styles = format!("{}text-decoration-line:line-through;", styles);
+				},
+				Attribute::Smallcaps(true) => {
+					styles = format!("{}font-variant:small-caps;", styles);
+				},
+				Attribute::Superscript(true) => {
+					styles = format!("{}vertical-align:super;font-size:smaller;", styles);
+				},
+				Attribute::Subscript(true) => {
+					styles = format!("{}vertical-align:sub;font-size:smaller;", styles);
+				},
 				Attribute::FontSize(val) => {
 					styles = format!("{}font-size:{}pt;", styles, (val/2).to_string());
 				},
@@ -62,7 +77,7 @@ impl HTMLWriter {
 	fn end_element(&mut self, element: Ref<ASTElement>) {
 		let tag: &str = match element.ele_type() {
 			GroupType::Text => "</span>",
-			GroupType::Paragraph => "</p><p></p>",
+			GroupType::Paragraph => "</p><br>",
 			GroupType::Hr => "</hr>",
 			GroupType::Body => {self.in_body = false; return;},
 			_ => return
