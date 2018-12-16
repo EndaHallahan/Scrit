@@ -206,7 +206,9 @@ Type 'scrit init' to intialize, or type 'scrit help init' for more information.
 	/*for scrit_file in &compiled_set {
 		println!("{:?}\n", scrit_file.body());
 	}*/
+	println!("Beginning upload...");
 	drive_operations::upload(&mut compiled_set);
+	println!("Ok! Upload successful.");
 
 	// Populate map
 	println!("Updating map...");

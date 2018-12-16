@@ -90,23 +90,27 @@ pub fn get_directory_id(map: &Element) -> String {
 }
 
 pub fn set_directory_id(map: &mut Element, id: &String) {
-	map.get_child_mut("Drive", "argabarga").unwrap()
-		.get_child_mut("Directory", "argabarga").unwrap()
-			.append_text_node(id.to_string());
+	{
+		let mut dir_ele = map.get_child_mut("Drive", "argabarga").unwrap()
+			.get_child_mut("Directory", "argabarga").unwrap();
+		if dir_ele.text().is_empty() {
+			dir_ele.append_text_node(id.to_string());
+		} else {
+			match dir_ele.texts_mut().nth(0) {
+				Some(text) => {text.clear()},
+				None => {}
+			}
+			dir_ele.append_text_node(id.to_string());
+		}	
+	}
+	*get_files(map) = Element::builder("Files").ns("argabarga").build();
 }
 
-pub fn check_existing_files<'a>(map: &'a Element, in_title: &'a String) -> Option<&'a str> {
-	let files = map.get_child("Drive", "argabarga").unwrap()
-		.get_child("Files", "argabarga").unwrap()
-			.children();
+pub fn check_existing_files<'a>(map: &'a mut Element, in_title: &'a String) -> Option<&'a mut Element> {
+	let files = get_files(map).children_mut();
 	for file in files {
-		match file.attr("title") {
-			Some(title) => {
-				if title == in_title {
-					return file.attr("id");
-				}
-			}
-			None => {}
+		if file.attr("title").unwrap() == in_title {
+			return Some(file);
 		}
 	}
 	None
@@ -160,6 +164,12 @@ pub fn get_file_by_id<'b>(map: &'b mut Element, in_id: &'b String) -> Option<&'b
 		}
 	}
 	None
+}
+
+pub fn replace_file(ele: &mut Element, in_id: &str, in_title: &String) {
+	ele.set_attr("id", in_id);
+	ele.set_attr("title", in_title);
+	ele.delete_children();
 }
 
 pub fn get_me_a_file_with_id_and_title<'a>(map: &'a mut Element, in_id: &'a String, in_title: &'a String) -> &'a mut Element {

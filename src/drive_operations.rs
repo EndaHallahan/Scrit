@@ -43,7 +43,7 @@ pub fn make_document(name: &String, contents: &String, dir_id: &String,
 		.upload(Cursor::new(contents.as_bytes()), "text/html".parse().unwrap()) 
 	{
 		Ok((_, y)) => {
-			println!("OK! Successfully uploaded '{}'...", name);
+			println!("OK! Successfully uploaded '{}'.", name);
 			y.id.unwrap()
 		},
 		Err(x) => {panic!("ERROR! {:?}",x);}
@@ -60,7 +60,7 @@ pub fn update_document(name: &String, contents: &String, dir_id: &String, file_i
 		.upload(Cursor::new(contents.as_bytes()), "text/html".parse().unwrap()) 
 	{
 		Ok((_, y)) => {
-			println!("OK! Successfully updated '{}'...", name);
+			println!("OK! Successfully updated '{}'.", name);
 			y.id.unwrap()
 		},
 		Err(x) => {panic!("ERROR! {:?}",x);}
@@ -78,10 +78,56 @@ pub fn make_directory(name: String,
 		.upload(Cursor::new(name.as_bytes()), "application/vnd.google-apps.folder".parse().unwrap()) 
 	{
 		Ok((_, y)) => {
-			println!("OK! Successfully created directory '{}'...", name);
+			println!("OK! Successfully created directory '{}'.", name);
 			y.id.unwrap()
 		},
 		Err(x) => {panic!("ERROR! {:?}",x)}
+	}
+}
+
+pub fn check_file_in_folder(file_id: &str, folder_id : &String, file_name: &String,
+	hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>
+) -> bool {
+	match hub.files().get(file_id).param("fields", "parents, trashed").doit() {
+		Ok((_, y)) => {
+			match y.parents {
+				Some(parents) => {
+					if !y.trashed.unwrap() && parents.contains(folder_id) {
+						true
+					} else {
+						println!("Couldn't find file '{}' in project folder, creating new file...", file_name);
+						false
+					}	
+				}
+				None => {
+					println!("Couldn't find file '{}' in project folder, creating new file...", file_name);
+					false
+				}
+			}
+		},
+		Err(_) => {
+			println!("Couldn't find file '{}' in project folder, creating new file...", file_name);
+			false
+		}
+	}
+}
+
+pub fn check_folder(folder_id : &String,
+	hub: &Drive<hyper::Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>
+) -> bool {
+	match hub.files().get(folder_id).param("fields", "trashed").doit() {
+		Ok((_, y)) => {
+			if !y.trashed.unwrap() {
+				true
+			} else {
+				println!("Couldn't find project folder, creating new directory...");
+				false
+			}
+		},
+		Err(x) => {
+			println!("Couldn't find project folder, creating new directory...");
+			false
+		}
 	}
 }
 
@@ -90,19 +136,26 @@ pub fn upload(compiled_set: &mut Vec<ScritFile>) {
 	let mut map = get_map();
 	let title = get_title_text(&map);
 	let mut dir_id = get_directory_id(&map);
-	if dir_id.is_empty() {
+	if dir_id.is_empty() || !check_folder(&dir_id, &hub) {
 		dir_id = make_directory(title.to_string(), &hub);
 		set_directory_id(&mut map, &dir_id);
-		map.write_to(&mut fs::File::create("Scrit/scrit_map.xml").unwrap());
 	}
 	for scrit_file in compiled_set {
 		let mut file_id: String;
-		match check_existing_files(&map, scrit_file.title()) {
-			Some(id) => {file_id = update_document(scrit_file.title(), scrit_file.body(), &dir_id, id, &hub);},
+		match check_existing_files(&mut map, scrit_file.title()) {
+			Some(ele) => {
+				if check_file_in_folder(ele.attr("id").unwrap(), &dir_id, scrit_file.title(), &hub) {
+					file_id = update_document(scrit_file.title(), scrit_file.body(), &dir_id, ele.attr("id").unwrap(), &hub);
+				} else {
+					file_id = make_document(scrit_file.title(), scrit_file.body(), &dir_id, &hub);
+					replace_file(ele, &file_id, scrit_file.title());
+				}		
+			},
 			None => {file_id = make_document(scrit_file.title(), scrit_file.body(), &dir_id, &hub);}
 		}
 		scrit_file.set_id(file_id);
 	}	
+	map.write_to(&mut fs::File::create("Scrit/scrit_map.xml").unwrap());
 }
 
 pub fn download() {
